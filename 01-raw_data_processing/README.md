@@ -34,6 +34,15 @@ conda activate necrobiome
 conda deactivate
 ```
 
+Download raw data from ////
+
+```bash
+mkdir raw
+cd raw
+wget ////
+cd ..
+```
+
 ### 1. Install R packages (v3.6.1)
 
 ```R
