@@ -84,8 +84,8 @@ library(phytools)
 ### 3. File path setup
 
 ```R
-rawpath <- "/Volumes/histolytica/necrobiome/raw"
-wdpath <- "~/github/necrobiome/01-raw_data_processing/"
+rawpath <- "raw"
+wdpath <- "~/necrobiome/01-raw_data_processing/" # if you didn't save to home folder, change to correct path
 fnFs <- sort(list.files(rawpath, pattern="_R1_001.fastq.gz", full.names=T))
 fnRs <- sort(list.files(rawpath, pattern="_R2_001.fastq.gz", full.names=T))
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
@@ -173,6 +173,8 @@ dev.off()
 print(ep)
 ```
 
+![reverse quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/error_plot.png)
+
 ### 9. Dereplication
 
 ```R
@@ -212,6 +214,9 @@ seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
 ```
 
+```text
+```
+
 ### 14. Sequence length distribution plot
 
 ```R
@@ -220,6 +225,8 @@ png(paste(wdpath, "img/", "length_hist.png", sep=""))
 plot(x=length.histogram[,1], y=length.histogram[,2])
 dev.off()
 ```
+
+![reverse quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/length_hist.png)
 
 ### 15. Remove chimeras
 
@@ -283,6 +290,9 @@ system("python fix_taxonomy_L7.py taxonomy_strings.txt > fix_string.txt")
 system("paste asv_ids.txt fix_string.txt > taxonomy_L7.txt")
 system("rm taxonomy_strings.txt fix_string.txt asv_ids.txt")
 system("head taxonomy_L7.txt")
+```
+
+```text
 ```
 
 ### 20. Combine sequence and taxonomy tables
