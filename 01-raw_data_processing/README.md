@@ -69,3 +69,6 @@ dev.off()
 print(fq)
 print(rq)
 ```
+
+![forward quality plot](img/forward_quality_plot.pdf)
+![reverse quality plot](img/reverse_quality_plot.pdf)
