@@ -199,8 +199,9 @@ W32E_S33_L001_R1_001.fastq.gz      459447    412766            89.83974
 ```R
 errF <- learnErrors(filtFs, multithread=T, random=T)
 errR <- learnErrors(filtRs, multithread=T, random=T)
-png(paste(wdpath, "img/", "error_plot.png", sep=""))
+png(paste(wdpath, "imgs/", "error_plot.png", sep=""))
 ep <- plotErrors(errF, nominalQ=TRUE) 
+plot(ep)
 dev.off()
 print(ep)
 ```
