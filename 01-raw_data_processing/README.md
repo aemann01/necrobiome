@@ -38,3 +38,19 @@ library(ape)
 library(phytools)
 ```
 
+## 3. File path setup
+
+```R
+rawpath <- "/Volumes/histolytica/necrobiome/raw"
+wdpath <- "~/github/necrobiome/01-raw_data_processing/"
+fnFs <- sort(list.files(rawpath, pattern="_R1_001.fastq.gz", full.names=T))
+fnRs <- sort(list.files(rawpath, pattern="_R2_001.fastq.gz", full.names=T))
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+message("sample names:")
+sample.names
+```
+
+```text
+sample names:
+    'Blank''BlankE''Negctrl''NegCtrl''S01A''S02E''S04A''S05E''S06A''S07E''S08A''S09E''S10A''S11E''S12A''S13E''S14A''S15E''S16A''S17E''S18A''S19E''S20A''S21E''S24A''S25E''S26A''S27E''S30A''S31E''S32A''S33E''S34A''S35E''S36A''S37E''S48A''S49E''W03A''W04E''W06E''W07A''W09A''W10E''W11A''W12E''W13A''W14E''W15A''W16E''W17A''W18E''W19A''W20E''W23A''W24E''W25A''W26E''W27A''W28E''W29A''W30E''W31A''W32E'
+```
