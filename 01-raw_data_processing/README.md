@@ -113,11 +113,6 @@ for(i in seq_along(fnFs)) {
                              "-o", fnFs.cut[i], "-p", fnRs.cut[i], # output files
                              fnFs.filtN[i], fnRs.filtN[i])) # input files
 }
-#sanity check, should report zero for all orientations and read sets
-rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs.cut[[rand]]), 
-      FWD.ReverseReads = sapply(FWD.orients, primerHits, fn = fnRs.cut[[rand]]), 
-      REV.ForwardReads = sapply(REV.orients, primerHits, fn = fnFs.cut[[rand]]), 
-      REV.ReverseReads = sapply(REV.orients, primerHits, fn = fnRs.cut[[rand]]))
 ```
 
 ### 7. Filter and trim reads
