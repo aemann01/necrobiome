@@ -1,6 +1,40 @@
 # Raw data processing
 
-## 1. Install R packages (v3.6.1)
+## Setup
+
+This repository assumes you are running in a Unix environment (e.g., Mac OSX or Linux) and you have conda installed.
+
+To get this repository:
+
+- Install and set up up anaconda or miniconda as described at the [bioconda
+  documentation](https://bioconda.github.io/user/install.html), including
+  setting up channels.
+- Clone this repository to your machine and change into the directory with
+
+```bash
+git clone https://github.com/aemann01/necrobiome.git && cd necrobiome/
+```
+
+- Run the following command to install the one of the environments
+
+```bash
+conda env create -f environment.yml
+
+```
+
+- To load a given environment run
+
+```bash
+conda activate necrobiome
+```
+
+- To turn off the environment run
+
+```bash
+conda deactivate
+```
+
+### 1. Install R packages (v3.6.1)
 
 ```R
 # if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -19,7 +53,7 @@
 # install.packages("ape")
 # install.packages("phytools")
 ```
-## 2. Load required libraries
+### 2. Load required libraries
 
 ```R
 library(dada2)
@@ -38,7 +72,7 @@ library(ape)
 library(phytools)
 ```
 
-## 3. File path setup
+### 3. File path setup
 
 ```R
 rawpath <- "/Volumes/histolytica/necrobiome/raw"
@@ -55,7 +89,7 @@ sample names:
     'Blank''BlankE''Negctrl''NegCtrl''S01A''S02E''S04A''S05E''S06A''S07E''S08A''S09E''S10A''S11E''S12A''S13E''S14A''S15E''S16A''S17E''S18A''S19E''S20A''S21E''S24A''S25E''S26A''S27E''S30A''S31E''S32A''S33E''S34A''S35E''S36A''S37E''S48A''S49E''W03A''W04E''W06E''W07A''W09A''W10E''W11A''W12E''W13A''W14E''W15A''W16E''W17A''W18E''W19A''W20E''W23A''W24E''W25A''W26E''W27A''W28E''W29A''W30E''W31A''W32E'
 ```
 
-## 4. Plot quality scores
+### 4. Plot quality scores
 
 ```R
 system("mkdir img")
@@ -74,7 +108,7 @@ print(rq)
 ![forward quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/forward_quality_plot.png)
 ![reverse quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/reverse_quality_plot.png)
 
-## 5. Preliminary filter (removes sequences with N's)
+### 5. Preliminary filter (removes sequences with N's)
 
 ```R
 fnFs.filtN <- file.path(rawpath, "filtN", basename(fnFs)) # Put N-filterd files in filtN/ subdirectory
@@ -82,7 +116,7 @@ fnRs.filtN <- file.path(rawpath, "filtN", basename(fnRs))
 filterAndTrim(fnFs, fnFs.filtN, fnRs, fnRs.filtN, maxN = 0, multithread = TRUE, compress = TRUE)
 ```
 
-## 6. Primer removal
+### 6. Primer removal
 
 ```R
 cutadapt <- as.character(system("which cutadapt", intern=T))
@@ -109,7 +143,7 @@ rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs.cut[[rand]]),
       REV.ReverseReads = sapply(REV.orients, primerHits, fn = fnRs.cut[[rand]]))
 ```
 
-## 7. Filter and trim reads
+### 7. Filter and trim reads
 
 ```R
 out <- filterAndTrim(cutFs, filtFs, cutRs, filtRs, trimRight=50, minLen = c(150,120),
@@ -119,7 +153,7 @@ retained <- as.data.frame(out)
 retained$percentage_retained <- retained$reads.out/retained$reads.in*100
 ```
 
-## 8. Learn and plot error rates
+### 8. Learn and plot error rates
 
 ```R
 errF <- learnErrors(filtFs, multithread=T, random=T)
@@ -130,7 +164,7 @@ dev.off()
 print(ep)
 ```
 
-## 9. Dereplication
+### 9. Dereplication
 
 ```R
 derepFs <- derepFastq(filtFs, verbose=TRUE)
@@ -139,14 +173,14 @@ names(derepFs) <- sample.names
 names(derepRs) <- sample.names
 ```
 
-## 10. Sample inference
+### 10. Sample inference
 
 ```R
 dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
 dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
 ```
 
-## 11. Filter out samples with fewer than 100 reads
+### 11. Filter out samples with fewer than 100 reads
 
 ```R
 getN <- function(x) sum(getUniques(x))
@@ -156,20 +190,20 @@ samples_to_remove <- names(samples_to_keep)[which(samples_to_keep == FALSE)]
 paste("number of samples removed: ", samples_to_remove)
 ```
 
-## 12. Merge paired end reads
+### 12. Merge paired end reads
 
 ```R
 mergers <- mergePairs(dadaFs[samples_to_keep], derepFs[samples_to_keep], dadaRs[samples_to_keep], derepRs[samples_to_keep], verbose=T, )
 ```
 
-## 13. Construct sequence table
+### 13. Construct sequence table
 
 ```R
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
 ```
 
-## 14. Sequence length distribution plot
+### 14. Sequence length distribution plot
 
 ```R
 length.histogram <- as.data.frame(table(nchar(getSequences(seqtab))))
@@ -178,7 +212,7 @@ plot(x=length.histogram[,1], y=length.histogram[,2])
 dev.off()
 ```
 
-## 15. Remove chimeras
+### 15. Remove chimeras
 
 ```R
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="pooled", multithread=T, verbose=T)
@@ -186,7 +220,7 @@ dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
-## 16. Processing summary
+### 16. Processing summary
 
 ```R
 getN <- function(x) sum(getUniques(x))
@@ -196,7 +230,7 @@ colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "n
 rownames(track) <- sample.names[samples_to_keep]
 ```
 
-## 17. Save output
+### 17. Save output
 
 ```R
 write.table(data.frame("row_names"=rownames(track),track),"read_retention.16s.txt", row.names=FALSE, quote=F, sep="\t")
@@ -206,7 +240,7 @@ system("awk '/^>/{print \">ASV\" ++i; next}{print}' < rep_set.fa > rep_set_fix.f
 system("mv rep_set_fix.fa rep_set.fa")
 ```
 
-## 18. Clean up ASV names
+### 18. Clean up ASV names
 
 ```R
 my_otu_table <- t(as.data.frame(seqtab.nochim)) 
@@ -215,7 +249,7 @@ ASV.num <- paste0("ASV", seq(ASV.seq), sep='')
 colnames(seqtab.nochim) <- ASV.num 
 ```
 
-## 19. Assign taxonomy using VSEARCH and QIIME2
+### 19. Assign taxonomy using VSEARCH and QIIME2
 
 ```R
 # get executable paths
@@ -242,7 +276,7 @@ system("rm taxonomy_strings.txt fix_string.txt asv_ids.txt")
 system("head taxonomy_L7.txt")
 ```
 
-## 20. Combine sequence and taxonomy tables
+### 20. Combine sequence and taxonomy tables
 
 ```R
 #taxa will be the rows, columns will be samples, followed by each rank of taxonomy assignment, from rank1 (domain-level) to rank7/8 (species-level), followed by accession (if applicable)
@@ -262,7 +296,7 @@ sequence_taxonomy_table <- cbind(t(seqtab.nosingletons.nochim), taxa)
 write.table(data.frame("row_names"=rownames(sequence_taxonomy_table),sequence_taxonomy_table),"sequence_taxonomy_table.16s.merged.txt", row.names=FALSE, quote=F, sep="\t")
 ```
 
-## 21. Filter out unwanted taxonomic groups
+### 21. Filter out unwanted taxonomic groups
 
 ```R
 system("grep -v -E 'Unassigned|Bacteria;unknown' sequence_taxonomy_table.16s.merged.txt | awk '{print $1}' | grep 'A' > wanted.ids")
@@ -271,7 +305,7 @@ seqtab.filtered <- seqtab.nosingletons.nochim[, which(colnames(seqtab.nosingleto
 write.table(data.frame("row_names"=rownames(seqtab.filtered),seqtab.filtered),"sequence_table.16s.filtered.txt", row.names=FALSE, quote=F, sep="\t")
 ```
 
-## 22. Generate representative sequence tree
+### 22. Generate representative sequence tree
 
 ```R
 system("seqtk subseq rep_set.fa wanted.ids > rep_set.filt.fa")
