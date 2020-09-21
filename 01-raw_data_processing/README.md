@@ -58,11 +58,12 @@ sample names:
 ## 4. Plot quality scores
 
 ```R
-pdf(paste(wdpath, "forward_quality_plot.pdf", sep=""))
+system("mkdir img")
+pdf(paste(wdpath, "img/", "forward_quality_plot.pdf", sep=""))
 fq <- plotQualityProfile(fnFs[5:15])
 print(fq)
 dev.off()
-pdf(paste(wdpath, "reverse_quality_plot.pdf", sep=""))
+pdf(paste(wdpath, "img/", "reverse_quality_plot.pdf", sep=""))
 rq <- plotQualityProfile(fnRs[5:15])
 print(rq)
 dev.off()
@@ -70,5 +71,13 @@ print(fq)
 print(rq)
 ```
 
-![forward quality plot](img/forward_quality_plot.pdf)
-![reverse quality plot](img/reverse_quality_plot.pdf)
+![forward quality plot](img/forward_quality_plot.png)
+![reverse quality plot](img/reverse_quality_plot.png)
+
+## 5. Preliminary filter (removes sequences with N's)
+
+```R
+fnFs.filtN <- file.path(rawpath, "filtN", basename(fnFs)) # Put N-filterd files in filtN/ subdirectory
+fnRs.filtN <- file.path(rawpath, "filtN", basename(fnRs))
+filterAndTrim(fnFs, fnFs.filtN, fnRs, fnRs.filtN, maxN = 0, multithread = TRUE, compress = TRUE)
+```
