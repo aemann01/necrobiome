@@ -1,6 +1,6 @@
 # Raw data processing
 
-## Install R packages (v3.6.1)
+## 1. Install R packages (v3.6.1)
 
 ```R
 # if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -19,3 +19,22 @@
 # install.packages("ape")
 # install.packages("phytools")
 ```
+## 2. Load required libraries
+
+```R
+library(dada2)
+library(tidyverse)
+library(reshape2)
+library(stringr)
+library(data.table)
+library(broom)
+library(qualpalr)
+library(viridis)
+library(ShortRead)
+library(Biostrings)
+library(seqinr)
+library(phyloseq)
+library(ape)
+library(phytools)
+```
+
