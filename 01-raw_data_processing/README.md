@@ -71,7 +71,7 @@ print(fq)
 print(rq)
 ```
 
-![forward quality plot](img/forward_quality_plot.png)
+![forward quality plot](01-raw_data_processing/img/forward_quality_plot.png)
 ![reverse quality plot](img/reverse_quality_plot.png)
 
 ## 5. Preliminary filter (removes sequences with N's)
