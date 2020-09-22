@@ -127,7 +127,7 @@ dev.off()
 ```R
 philr.dist <- dist(philr.t, method="euclidean")
 pca <- prcomp(as.matrix(philr.dist))
-pdf("imgs/philr_screeplot.pdf")
+png("imgs/philr_screeplot.png")
 screeplot(pca)
 dev.off()
 png("imgs/pca_season.png")
@@ -140,6 +140,7 @@ png("imgs/pca_temp.png")
 autoplot(pca, data=rawmetadata, colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
 dev.off()
 ```
+![screeplot](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/philr_screeplot.png)
 
 ![pca season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_season.png)
 ![pca matrix](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_matrix.png)
