@@ -224,12 +224,12 @@ dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
 dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
 ```
 
-### 11. Filter out samples with fewer than 100 reads
+### 11. Filter out samples with fewer than 1000 reads
 
 ```R
 getN <- function(x) sum(getUniques(x))
 track <- cbind(sapply(derepFs, getN), sapply(derepRs, getN), sapply(dadaFs, getN), sapply(dadaRs, getN))
-samples_to_keep <- track[,4] > 100
+samples_to_keep <- track[,4] > 1000
 samples_to_remove <- names(samples_to_keep)[which(samples_to_keep == FALSE)]
 paste("number of samples removed: ", samples_to_remove)
 ```
