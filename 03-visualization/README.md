@@ -38,6 +38,8 @@ library(ggfortify)
 library(UpSetR)
 library(plyr)
 library(vegan)
+library(phylofactor)
+library(ggtree)
 ```
 
 ### Load data into R
@@ -284,32 +286,115 @@ Residuals 58   11496.5 198.215         0.98322
 Total     60   11692.7                 1.00000
 ```
 
+```R
+adonis(philr.dist ~ Insects, data=metadata)
+```
 
-##############
-#Phylofactor
-##############
+```text
+Call:
+adonis(formula = philr.dist ~ Insects, data = metadata)
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+Insects    3    2976.4  992.15  6.4881 0.25456  0.001 ***
+Residuals 57    8716.3  152.92         0.74544
+Total     60   11692.7                 1.00000
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+### Phylofactor
+
+Differentially abundant taxa between groups
+
+```R
 OTUTable <- as.matrix(t(seqtab.filtered))
 filt.list <- colnames(OTUTable)
 filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
 filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
-x <- as.factor(filtmap$MachRes1) # CHANGE ME to your variable of interest
+x <- as.factor(filtmap$Season) 
 tree <- phy_tree(philr.dat)
-tax <- read.table("assigntax/rep_set_tax_assignments_phylofactor.txt", sep="\t", header=T)
+tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
 common.otus <- which(rowSums(OTUTable>0)>10)
 OTUTable <- OTUTable[common.otus,]
 tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
 PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
 PF$Data <- PF$Data[PF$tree$tip.label,]
 gtree <- pf.tree(PF,layout="rectangular")
-pdf("figs/phylofactor_tree.pdf")
+png("imgs/phylofactor_tree.png")
 gtree$ggplot + geom_tiplab()
 dev.off()
+```
 
+![phylo tree](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree.png)
+
+
+Boxplots and significance levels for each factor
+
+Factor 1:
+
+```R
 y <- t(PF$basis[,1]) %*% log(PF$Data)
 dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
 dat$V2 <- as.numeric(as.character(dat$V2))
-pdf("figs/factor1_boxp.pdf")
+png("imgs/factor1_boxp.png")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
 dev.off()
+wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
+```
 
-wilcox.test(dat[dat$V1 == "Negative",]$V2, dat[dat$V1 == "Positive",]$V2)
+```text
+	Wilcoxon rank sum test
+
+data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
+W = 145, p-value = 1.425e-05
+alternative hypothesis: true location shift is not equal to 0
+```
+
+Factor 2:
+
+```R
+y <- t(PF$basis[,2]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor2_boxp.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
+wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
+```
+
+```text
+	Wilcoxon rank sum test
+
+data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
+W = 692, p-value = 2.125e-06
+alternative hypothesis: true location shift is not equal to 0
+```
+
+Factor 3:
+
+```R
+y <- t(PF$basis[,3]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor3_boxp.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
+wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
+```
+
+```text
+	Wilcoxon rank sum test
+
+data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
+W = 650, p-value = 7.686e-05
+alternative hypothesis: true location shift is not equal to 0
+```
+
+![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp.png)
+![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp.png)
+![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp.png)
