@@ -315,13 +315,16 @@ Differentially abundant taxa between groups
 ```R
 OTUTable <- as.matrix(t(seqtab.filtered))
 filt.list <- colnames(OTUTable)
+filt.list <- filt.list[-1:-3] # remove blanks
 filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
 filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
+filtmap$Season <- droplevels(filtmap$Season) # drop blank level
 x <- as.factor(filtmap$Season) 
 tree <- phy_tree(philr.dat)
 tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
 common.otus <- which(rowSums(OTUTable>0)>10)
 OTUTable <- OTUTable[common.otus,]
+OTUTable <- OTUTable[,filt.list] # filter out blanks
 tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
 PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
 PF$Data <- PF$Data[PF$tree$tip.label,]
@@ -363,7 +366,7 @@ y <- t(PF$basis[,2]) %*% log(PF$Data)
 dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
 dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor2_boxp.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
 dev.off()
 wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 ```
@@ -383,7 +386,7 @@ y <- t(PF$basis[,3]) %*% log(PF$Data)
 dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
 dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor3_boxp.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
 dev.off()
 wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 ```
@@ -392,7 +395,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 650, p-value = 7.686e-05
+W = 654, p-value = 5.661e-05
 alternative hypothesis: true location shift is not equal to 0
 ```
 
