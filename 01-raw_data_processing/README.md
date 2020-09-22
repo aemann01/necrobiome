@@ -206,7 +206,7 @@ dev.off()
 print(ep)
 ```
 
-![reverse quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/error_plot.png)
+![error plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/error_plot.png)
 
 ### 9. Dereplication
 
@@ -231,13 +231,17 @@ getN <- function(x) sum(getUniques(x))
 track <- cbind(sapply(derepFs, getN), sapply(derepRs, getN), sapply(dadaFs, getN), sapply(dadaRs, getN))
 samples_to_keep <- track[,4] > 1000
 samples_to_remove <- names(samples_to_keep)[which(samples_to_keep == FALSE)]
-paste("number of samples removed: ", samples_to_remove)
+paste(samples_to_remove)
+```
+
+```text
+"BlankE" "W18E"   "W19A"
 ```
 
 ### 12. Merge paired end reads
 
 ```R
-mergers <- mergePairs(dadaFs[samples_to_keep], derepFs[samples_to_keep], dadaRs[samples_to_keep], derepRs[samples_to_keep], verbose=T, )
+mergers <- mergePairs(dadaFs[samples_to_keep], derepFs[samples_to_keep], dadaRs[samples_to_keep], derepRs[samples_to_keep], verbose=T)
 ```
 
 ### 13. Construct sequence table
@@ -248,18 +252,19 @@ dim(seqtab)
 ```
 
 ```text
+61 40439
 ```
 
 ### 14. Sequence length distribution plot
 
 ```R
 length.histogram <- as.data.frame(table(nchar(getSequences(seqtab))))
-png(paste(wdpath, "img/", "length_hist.png", sep=""))
+png(paste(wdpath, "imgs/", "length_hist.png", sep=""))
 plot(x=length.histogram[,1], y=length.histogram[,2])
 dev.off()
 ```
 
-![reverse quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/length_hist.png)
+![length histogram](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/length_hist.png)
 
 ### 15. Remove chimeras
 
@@ -267,6 +272,10 @@ dev.off()
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="pooled", multithread=T, verbose=T)
 dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
+```
+
+```text
+
 ```
 
 ### 16. Processing summary
@@ -277,6 +286,13 @@ track <- cbind(out[samples_to_keep,], sapply(dadaFs[samples_to_keep], getN), sap
 track <- cbind(track, 100-track[,6]/track[,5]*100, 100-track[,7]/track[,6]*100)
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nochimeras", "percent_singletons", "percent_chimeras")
 rownames(track) <- sample.names[samples_to_keep]
+track
+```
+
+```text
+Identified 37368 bimeras out of 40439 input sequences.
+61 3071
+0.683967
 ```
 
 ### 17. Save output
@@ -304,14 +320,13 @@ colnames(seqtab.nochim) <- ASV.num
 # get executable paths
 qiimepath <- system("conda env list | grep 'qiime' | awk '{print $2}'", intern=T)
 qiimepathFix <- paste(qiimepath, "/bin/qiime", sep="")
-qiimepathFix
 # reference files
-BACREF <- "ezbiocloud_qiime_full.fasta"
-BACTAX <- "ezbiocloud_id_taxonomy.txt"
+BACREF <- "ezbiocloud_qiime_full.qza"
+BACTAX <- "ezbiocloud_id_taxonomy.qza"
 # format and run
-system(paste(qiimepathFix, "tools import --input-path rep_set.fa --output-path rep_set.qza --type 'FeatureData[Sequence]'")
+system(paste(qiimepathFix, "tools import --input-path rep_set.fa --output-path rep_set.qza --type 'FeatureData[Sequence]'"))
 system("rm -r assigntax")
-system(sprintf(paste(qiimepathFix, "feature-classifier classify-consensus-vsearch --i-query rep_set.qza --i-reference-reads %s --i-reference-taxonomy %s --output-dir assigntax"), BACREF, BACTAX)
+system(sprintf(paste(qiimepathFix, "feature-classifier classify-consensus-vsearch --i-query rep_set.qza --i-reference-reads %s --i-reference-taxonomy %s --output-dir assigntax"), BACREF, BACTAX))
 system("unzip assigntax/classification.qza -d assigntax/")
 #get file path for taxonomy file
 tempfile <- subset(dir(path="assigntax"), !grepl("classification.qza", dir(path="assigntax/")))
@@ -326,6 +341,16 @@ system("head taxonomy_L7.txt")
 ```
 
 ```text
+ASV1	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+ASV2	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Sporosarcina;Sporosarcina_unknown
+ASV3	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+ASV4	Bacteria;Actinobacteria;Actinobacteria_c;Corynebacteriales;Corynebacteriaceae;Corynebacterium;Corynebacterium_unknown
+ASV5	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Planococcaceae_unknown;Planococcaceae_unknown
+ASV6	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
+ASV7	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
+ASV8	Bacteria;Actinobacteria;Actinobacteria_c;Corynebacteriales;Nocardiaceae;Gordonia;Gordonia_unknown
+ASV9	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+ASV10	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
 ```
 
 ### 20. Combine sequence and taxonomy tables
@@ -334,16 +359,19 @@ system("head taxonomy_L7.txt")
 #taxa will be the rows, columns will be samples, followed by each rank of taxonomy assignment, from rank1 (domain-level) to rank7/8 (species-level), followed by accession (if applicable)
 #first check if the row names of the taxonomy table match the column headers of the sequence table
 taxa <- read.table(newpath, header=T, sep="\t", row.names=1)
-length(which(row.names(taxa) %in% colnames(seqtab.nosingletons.nochim)))
+length(which(row.names(taxa) %in% colnames(seqtab.nochim)))
+# [1] 3071
 dim(taxa)
-dim(seqtab.nosingletons.nochim)
+# [1] 3071    2
+dim(seqtab.nochim)
+# [1]   61 3071
 #the number of taxa from the last three commands should match
 #now ensure that the taxa in the tables are in the same order #this should be true if you haven't reordered one or the other of these matrices inadvertently
 order.col <- row.names(taxa)
-seqtab.nosingletons.nochim <- seqtab.nosingletons.nochim[,order.col]
-row.names(taxa) == colnames(seqtab.nosingletons.nochim) #IMPORTANT: only proceed if this evaluation is true for every element. if it isn't you'll need to re-order your data. I'd suggest sorting both matrices by their rows after transposing the sequence table.
+seqtab.nochim <- seqtab.nochim[,order.col]
+row.names(taxa) == colnames(seqtab.nochim) #IMPORTANT: only proceed if this evaluation is true for every element. if it isn't you'll need to re-order your data. I'd suggest sorting both matrices by their rows after transposing the sequence table.
 #as long as the ordering of taxa is the same, you can combine like this (note you need to transpose the sequence table so that the taxa are in the rows)
-sequence_taxonomy_table <- cbind(t(seqtab.nosingletons.nochim), taxa)
+sequence_taxonomy_table <- cbind(t(seqtab.nochim), taxa)
 #now write to file
 write.table(data.frame("row_names"=rownames(sequence_taxonomy_table),sequence_taxonomy_table),"sequence_taxonomy_table.16s.merged.txt", row.names=FALSE, quote=F, sep="\t")
 ```
@@ -353,7 +381,7 @@ write.table(data.frame("row_names"=rownames(sequence_taxonomy_table),sequence_ta
 ```R
 system("grep -v -E 'Unassigned|Bacteria;unknown' sequence_taxonomy_table.16s.merged.txt | awk '{print $1}' | grep 'A' > wanted.ids")
 wanted <- read.table("wanted.ids", header=F)
-seqtab.filtered <- seqtab.nosingletons.nochim[, which(colnames(seqtab.nosingletons.nochim) %in% wanted$V1)]
+seqtab.filtered <- seqtab.nochim[, which(colnames(seqtab.nochim) %in% wanted$V1)]
 write.table(data.frame("row_names"=rownames(seqtab.filtered),seqtab.filtered),"sequence_table.16s.filtered.txt", row.names=FALSE, quote=F, sep="\t")
 ```
 
