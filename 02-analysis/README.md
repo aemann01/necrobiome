@@ -1,4 +1,4 @@
-# Visualization
+# Visualization (R v3.6.1 and QIIME2 2020.8)
 
 ### Install required libraries
 
@@ -36,7 +36,7 @@ library(plyr)
 library(vegan)
 library(phylofactor)
 library(ggtree)
-library(DESeq2)
+library(ALDEx2)
 ```
 
 ### Load data into R
@@ -448,3 +448,157 @@ alternative hypothesis: true location shift is not equal to 0
 ![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp.png)
 ![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp.png)
 ![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp.png)
+
+### Differential abundance 
+
+First need to format for qiime2 (transpose sequence table beforehand, columns = samples, rows = ASV IDs)
+
+```R
+system("biom convert -i ../01-raw_data_processing/sequence_table.16s.filtered.tr.txt -o sequence_table.16s.filtered.biom --table-type="OTU table" --to-hdf5")
+system("biom summarize-table -i sequence_table.16s.filtered.biom")
+```
+```text
+Num samples: 61
+Num observations: 2,989
+Total count: 7,928,033
+Table density (fraction of non-zero values): 0.047
+
+Counts/sample summary:
+ Min: 2,394.000
+ Max: 328,813.000
+ Median: 119,915.000
+ Mean: 129,967.754
+ Std. dev.: 66,955.954
+ Sample Metadata Categories: None provided
+ Observation Metadata Categories: None provided
+
+Counts/sample detail:
+NegCtrl: 2,394.000
+S48A: 16,000.000
+W07A: 44,641.000
+W12E: 47,275.000
+W11A: 50,547.000
+S13E: 52,958.000
+S07E: 59,115.000
+S24A: 61,119.000
+S33E: 64,722.000
+W04E: 66,235.000
+S09E: 67,009.000
+W14E: 71,210.000
+S31E: 77,538.000
+S25E: 80,651.000
+W24E: 80,996.000
+W03A: 83,347.000
+W13A: 85,035.000
+S08A: 87,589.000
+S10A: 92,886.000
+S15E: 95,415.000
+W28E: 97,112.000
+S32A: 99,606.000
+S49E: 100,502.000
+Negctrl: 101,417.000
+W30E: 107,583.000
+S06A: 109,901.000
+S16A: 110,355.000
+S12A: 110,985.000
+W09A: 116,494.000
+S11E: 117,369.000
+S26A: 119,915.000
+W27A: 122,649.000
+S04A: 123,121.000
+W17A: 124,667.000
+W20E: 126,772.000
+W16E: 129,583.000
+W31A: 131,180.000
+S02E: 132,168.000
+W26E: 135,470.000
+W06E: 135,878.000
+W29A: 138,578.000
+W25A: 147,346.000
+W10E: 147,675.000
+S27E: 152,616.000
+S19E: 162,642.000
+S05E: 163,124.000
+S30A: 166,900.000
+W23A: 173,031.000
+S20A: 182,490.000
+S14A: 189,895.000
+W32E: 190,175.000
+S21E: 201,080.000
+S17E: 210,433.000
+S01A: 211,940.000
+S18A: 219,883.000
+W15A: 229,232.000
+S37E: 249,545.000
+Blank: 249,745.000
+S35E: 278,400.000
+S36A: 295,081.000
+S34A: 328,813.000
+```
+
+```R
+system("qiime tools import --input-path sequence_table.16s.filtered.biom --type 'FeatureTable[Frequency]' --input-format BIOMV210Format --output-path sequence_table.16s.filtered.qza")
+```
+
+Now can run ALDEx plugin through qiime
+
+```R
+system("qiime feature-table filter-samples --i-table sequence_table.16s.filtered.qza --m-metadata-file map.txt --p-where "[Sample-type]='swab'" --o-filtered-table swab-feature-table.qza")
+system("qiime aldex2 aldex2 --i-table swab-feature-table.qza --m-metadata-file map.txt --m-metadata-column Season --output-dir season_aldex")
+system("qiime aldex2 effect-plot --i-table season_aldex/differentials.qza --o-visualization season_aldex/season")
+system("qiime tools view season_aldex/season.qzv")
+```
+
+![aldex season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/season_aldex/effect_plot.png)
+
+
+```R
+system("qiime aldex2 extract-differences --i-table season_aldex/differentials.qza --o-differentials season_aldex/season --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0")
+system("qiime tools export --input-path season_aldex/season.qza --output-path season_aldex/")
+system("awk '{print $1}' season_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > season_aldex/differentials.taxonomy.txt")
+system("head season_aldex/differentials.taxonomy.txt")
+```
+
+```text
+ASV4	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
+ASV5	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
+ASV6	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV7	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV10	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV16	Bacteria	Proteobacteria	Betaproteobacteria	Burkholderiales	Burkholderiaceae	Paraburkholderia	Paraburkholderia_unknown
+ASV17	Bacteria	Firmicutes	Clostridia	Clostridiales	Peptostreptococcaceae	Peptostreptococcaceae_unknown	Peptostreptococcaceae_unknown
+ASV20	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV22	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
+ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
+```
+
+Low vs high temperature -- first need to filter out the na sample from mapping file (delete in excel) and then filter from qza
+
+```R
+system("qiime feature-table filter-samples --i-table swab-feature-table.qza --m-metadata-file map.filt.txt --o-filtered-table swab-feature-table.filt.qza")
+system("qiime aldex2 aldex2 --i-table swab-feature-table.filt.qza --m-metadata-file map.filt.txt --m-metadata-column Temp_group_binary --output-dir temp-low-hi_aldex")
+system("qiime aldex2 effect-plot --i-table temp-low-hi_aldex/differentials.qza --o-visualization temp-low-hi_aldex/temp-low-hi")
+system("qiime tools view temp-low-hi_aldex/temp-low-hi.qzv")
+```
+
+![aldex season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/temp-low-hi_aldex/effect_plot.png)
+
+```R
+system("qiime aldex2 extract-differences --i-table temp-low-hi_aldex/differentials.qza --o-differentials temp-low-hi_aldex/temp-low-hi --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0")
+system("qiime tools export --input-path temp-low-hi_aldex/temp-low-hi.qza --output-path temp-low-hi_aldex/")
+system("awk '{print $1}' temp-low-hi_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > temp-low-hi_aldex/differentials.taxonomy.txt")
+system("head temp-low-hi_aldex/differentials.taxonomy.txt")
+```
+
+```text
+ASV4	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
+ASV5	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
+ASV6	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV10	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV16	Bacteria	Proteobacteria	Betaproteobacteria	Burkholderiales	Burkholderiaceae	Paraburkholderia	Paraburkholderia_unknown
+ASV20	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV22	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
+ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
+ASV26	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV32	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Morganellaceae	Providencia	Providencia_unknown
+```
