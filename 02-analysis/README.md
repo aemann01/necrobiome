@@ -602,3 +602,14 @@ ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unkno
 ASV26	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
 ASV32	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Morganellaceae	Providencia	Providencia_unknown
 ```
+
+Clostridium seems to be very high in high temp, very low in low, plot these along temperature gradient. First merge with metadata and taxonomy.
+
+```R
+merged1 <- merge(seqtab.filtered, taxa, by=0)
+merged.seqtab <- merge(merged1, taxa, by=0)
+
+
+
+
+
