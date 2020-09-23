@@ -3,25 +3,21 @@
 ### Install required libraries
 
 ```R
-install.packages("tidyverse")
-install.packages("ggplot2")
-install.packages("gridExtra")
-install.packages("ggdendro")
-install.packages("dendextend")
-install.packages("compositions")
-install.packages("ape")
-install.packages("RColorBrewer")
-install.packages("UpSetR")
-install.packages("reshape2")
-install.packages("vegan")
-install.packages("ggfortify")
-
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("philr")
-BiocManager::install("phyloseq")
-BiocManager::install("ggtree")
-devtools::install_github('reptalex/phylofactor')
+# install.packages("ggplot2")
+# install.packages("gridExtra")
+# install.packages("ggdendro")
+# install.packages("ape")
+# install.packages("RColorBrewer")
+# install.packages("UpSetR")
+# install.packages("vegan")
+# install.packages("ggfortify")
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+# BiocManager::install("philr")
+# BiocManager::install("phyloseq")
+# BiocManager::install("ggtree")
+# BiocManager::install("ALDEx2")
+# devtools::install_github('reptalex/phylofactor')
 ```
 
 ### Load required libraries
@@ -40,6 +36,7 @@ library(plyr)
 library(vegan)
 library(phylofactor)
 library(ggtree)
+library(DESeq2)
 ```
 
 ### Load data into R
@@ -102,7 +99,7 @@ philr.t <- philr(otu.table, tree, part.weights="enorm.x.gm.counts", ilr.weights=
 ### Heirarchical cluster dendrogram from transformed data
 
 ```R
-system("mkdir imgs")
+# system("mkdir imgs")
 hc <- hclust(dist(philr.t), method="complete")
 df2 <- data.frame(cluster=cutree(hc,5), states=factor(hc$labels, levels=hc$labels[hc$order])) # get cluster assocaited with each sample
 write.table(df2, "philr_cluster.txt", quote=F, sep="\t", col.names=NA)
@@ -308,6 +305,27 @@ Total     60   11692.7                 1.00000
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
+```R
+adonis(philr.dist ~ Temp_group, data=metadata)
+```
+
+```text
+Call:
+adonis(formula = philr.dist ~ Temp_group, data = metadata)
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+Temp_group  4    3141.0  785.26  5.1422 0.26863  0.001 ***
+Residuals  56    8551.7  152.71         0.73137
+Total      60   11692.7                 1.00000
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
 ### Phylofactor
 
 Differentially abundant taxa between groups
@@ -334,7 +352,35 @@ gtree$ggplot + geom_tiplab()
 dev.off()
 ```
 
+By temperature group
+
+```R
+OTUTable <- as.matrix(t(seqtab.filtered))
+filt.list <- colnames(OTUTable)
+filt.list <- filt.list[-1:-3] # remove blanks
+filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
+filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
+filtmap$Season <- droplevels(filtmap$Temp_group) # drop blank level
+x <- as.factor(filtmap$Temp_group) 
+tree <- phy_tree(philr.dat)
+tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
+common.otus <- which(rowSums(OTUTable>0)>10)
+OTUTable <- OTUTable[common.otus,]
+OTUTable <- OTUTable[,filt.list] # filter out blanks
+tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
+PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
+PF$Data <- PF$Data[PF$tree$tip.label,]
+gtree <- pf.tree(PF,layout="rectangular")
+png("imgs/phylofactor_tree_tempG.png")
+gtree$ggplot + geom_tiplab()
+dev.off()
+pdf("imgs/phylofactor_tree_tempG.pdf")
+gtree$ggplot + geom_tiplab()
+dev.off()
+```
+
 ![phylo tree](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree.png)
+![phylo tree tg](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree_tempG.png)
 
 
 Boxplots and significance levels for each factor
