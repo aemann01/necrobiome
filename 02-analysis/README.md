@@ -614,13 +614,32 @@ merged <- merge(seqtab.nochim, taxa, by=0)
 write.table(data.frame("row_names"=rownames(merged),merged),"sequence_taxonomy_table.16s.merged.txt", row.names=FALSE, quote=F, sep="\t")
 ```
 
-Plot Clostridium results by temperature
+Test plot differentially abundant ASVs by temperature
 
 ```R
-clost <- read.table("../01-raw_data_processing/clostridium.txt", header=T, row.names=1)
+test <- otu_table(philr.dat)[,"ASV4"]
+test.m <- merge(rawmetadata, test, by=0)
+test.m$Temperature_C <- as.numeric(as.character(test.m$Temperature_C))
+test.m <- test.m[!is.na(test.m$Temperature_C),]
+test.m$Temp_C_bin <- cut(test.m$Temperature_C, breaks=10)
 
-
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+df2 <- data_summary(test.m, varname="ASV4", groupnames=c("Temperature_C"))
+png(paste("imgs/", "test_ASV4.png", sep=""))
+ggplot(df2, aes(x=as.factor(Temperature_C), y=ASV4)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("IRL Transformed Read Counts") + geom_errorbar(aes(ymin=ASV4-sd, ymax=ASV4+sd), width=.2) + geom_point(test.m, mapping=aes(x=as.factor(Temperature_C), y=ASV4)) + geom_jitter()
+dev.off()
 ```
+![asv4 IRL counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/test_ASV4.png)
 
 
 
