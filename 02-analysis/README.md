@@ -17,6 +17,7 @@
 # BiocManager::install("phyloseq")
 # BiocManager::install("ggtree")
 # BiocManager::install("ALDEx2")
+# BiocManager::install("microbiome")
 # devtools::install_github('reptalex/phylofactor')
 ```
 
@@ -37,6 +38,7 @@ library(vegan)
 library(phylofactor)
 library(ggtree)
 library(ALDEx2)
+library(microbiome)
 ```
 
 ### Load data into R
@@ -603,11 +605,22 @@ ASV26	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Cl
 ASV32	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Morganellaceae	Providencia	Providencia_unknown
 ```
 
-Clostridium seems to be very high in high temp, very low in low, plot these along temperature gradient. First merge with metadata and taxonomy.
+Clostridium seems to be very high in high temp, very low in low, plot these along temperature gradient. First merge with taxonomy. Open in excel and get values from clostridium.
 
 ```R
-merged1 <- merge(seqtab.filtered, taxa, by=0)
-merged.seqtab <- merge(merged1, taxa, by=0)
+seqtab.nochim <- read.table("../01-raw_data_processing/sequence_table.16s.filtered.tr.txt", header=T, row.names=1)
+taxa <- read.table("../01-raw_data_processing/taxonomy_L7.txt", header=F, row.names=1)
+merged <- merge(seqtab.nochim, taxa, by=0)
+write.table(data.frame("row_names"=rownames(merged),merged),"sequence_taxonomy_table.16s.merged.txt", row.names=FALSE, quote=F, sep="\t")
+```
+
+Plot Clostridium results by temperature
+
+```R
+clost <- read.table("../01-raw_data_processing/clostridium.txt", header=T, row.names=1)
+
+
+```
 
 
 
