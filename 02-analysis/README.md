@@ -17,6 +17,7 @@
 # BiocManager::install("phyloseq")
 # BiocManager::install("ggtree")
 # BiocManager::install("ALDEx2")
+# BiocManager::install("microbiome")
 # devtools::install_github('reptalex/phylofactor')
 ```
 
@@ -37,6 +38,7 @@ library(vegan)
 library(phylofactor)
 library(ggtree)
 library(ALDEx2)
+library(microbiome)
 ```
 
 ### Load data into R
@@ -602,3 +604,44 @@ ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unkno
 ASV26	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
 ASV32	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Morganellaceae	Providencia	Providencia_unknown
 ```
+
+Clostridium seems to be very high in high temp, very low in low, plot these along temperature gradient. First merge with taxonomy. Open in excel and get values from clostridium.
+
+```R
+seqtab.nochim <- read.table("../01-raw_data_processing/sequence_table.16s.filtered.tr.txt", header=T, row.names=1)
+taxa <- read.table("../01-raw_data_processing/taxonomy_L7.txt", header=F, row.names=1)
+merged <- merge(seqtab.nochim, taxa, by=0)
+write.table(data.frame("row_names"=rownames(merged),merged),"sequence_taxonomy_table.16s.merged.txt", row.names=FALSE, quote=F, sep="\t")
+```
+
+Test plot differentially abundant ASVs by temperature
+
+```R
+test <- otu_table(philr.dat)[,"ASV4"]
+test.m <- merge(rawmetadata, test, by=0)
+test.m$Temperature_C <- as.numeric(as.character(test.m$Temperature_C))
+test.m <- test.m[!is.na(test.m$Temperature_C),]
+test.m$Temp_C_bin <- cut(test.m$Temperature_C, breaks=10)
+
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+df2 <- data_summary(test.m, varname="ASV4", groupnames=c("Temperature_C"))
+png(paste("imgs/", "test_ASV4.png", sep=""))
+ggplot(df2, aes(x=as.factor(Temperature_C), y=ASV4)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("IRL Transformed Read Counts") + geom_errorbar(aes(ymin=ASV4-sd, ymax=ASV4+sd), width=.2) + geom_point(test.m, mapping=aes(x=as.factor(Temperature_C), y=ASV4)) + geom_jitter()
+dev.off()
+```
+![asv4 IRL counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/test_ASV4.png)
+
+
+
+
+
