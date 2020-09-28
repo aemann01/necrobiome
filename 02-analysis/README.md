@@ -354,36 +354,7 @@ gtree$ggplot + geom_tiplab()
 dev.off()
 ```
 
-By temperature group
-
-```R
-OTUTable <- as.matrix(t(seqtab.filtered))
-filt.list <- colnames(OTUTable)
-filt.list <- filt.list[-1:-3] # remove blanks
-filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
-filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
-filtmap$Season <- droplevels(filtmap$Temp_group) # drop blank level
-x <- as.factor(filtmap$Temp_group) 
-tree <- phy_tree(philr.dat)
-tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
-common.otus <- which(rowSums(OTUTable>0)>10)
-OTUTable <- OTUTable[common.otus,]
-OTUTable <- OTUTable[,filt.list] # filter out blanks
-tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
-PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
-PF$Data <- PF$Data[PF$tree$tip.label,]
-gtree <- pf.tree(PF,layout="rectangular")
-png("imgs/phylofactor_tree_tempG.png")
-gtree$ggplot + geom_tiplab()
-dev.off()
-pdf("imgs/phylofactor_tree_tempG.pdf")
-gtree$ggplot + geom_tiplab()
-dev.off()
-```
-
 ![phylo tree](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree.png)
-![phylo tree tg](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree_tempG.png)
-
 
 Boxplots and significance levels for each factor
 
@@ -450,6 +421,72 @@ alternative hypothesis: true location shift is not equal to 0
 ![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp.png)
 ![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp.png)
 ![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp.png)
+
+By temperature group
+
+```R
+OTUTable <- as.matrix(t(seqtab.filtered))
+filt.list <- colnames(OTUTable)
+filt.list <- filt.list[-1:-3] # remove blanks
+filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
+filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
+filtmap$Season <- droplevels(filtmap$Temp_group) # drop blank level
+x <- as.factor(filtmap$Temp_group) 
+tree <- phy_tree(philr.dat)
+tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
+common.otus <- which(rowSums(OTUTable>0)>10)
+OTUTable <- OTUTable[common.otus,]
+OTUTable <- OTUTable[,filt.list] # filter out blanks
+tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
+PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
+PF$Data <- PF$Data[PF$tree$tip.label,]
+gtree <- pf.tree(PF,layout="rectangular")
+png("imgs/phylofactor_tree_tempG.png")
+gtree$ggplot + geom_tiplab()
+dev.off()
+pdf("imgs/phylofactor_tree_tempG.pdf")
+gtree$ggplot + geom_tiplab()
+dev.off()
+```
+
+![phylo tree tg](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree_tempG.png)
+
+Factor 1:
+
+```R
+y <- t(PF$basis[,1]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor1_boxp_tempG.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
+```
+
+Factor 2:
+
+```R
+y <- t(PF$basis[,2]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor2_boxp_tempG.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
+dev.off()
+```
+
+Factor 3:
+
+```R
+y <- t(PF$basis[,3]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor3_boxp_tempG.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
+dev.off()
+```
+
+![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp_tempG.png)
+![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp_tempG.png)
+![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp_tempG.png)
 
 ### Differential abundance 
 
@@ -639,8 +676,64 @@ png(paste("imgs/", "test_ASV4.png", sep=""))
 ggplot(df2, aes(x=as.factor(Temperature_C), y=ASV4)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("IRL Transformed Read Counts") + geom_errorbar(aes(ymin=ASV4-sd, ymax=ASV4+sd), width=.2) + geom_point(test.m, mapping=aes(x=as.factor(Temperature_C), y=ASV4)) + geom_jitter()
 dev.off()
 ```
+
 ![asv4 IRL counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/test_ASV4.png)
 
+Now do a real plot based off of differentially abundant clades in phylofactor by temp group
+
+```R
+# get list of asvs to filter data
+factor1 <- c("ASV5", "ASV19", "ASV2", "ASV80", "ASV23", "ASV85", "ASV212", "ASV122")
+factor2 <- c("ASV7", "ASV125", "ASV20", "ASV335", "ASV471", "ASV10", "ASV194", "ASV6", "ASV93", "ASV26", "ASV35", "ASV38", "ASV34")
+factor3 <- c("ASV14", "ASV9", "ASV1", "ASV56", "ASV25", "ASV3", "ASV67")
+# convert philr.dat transformed otu table to dataframe
+df <- otu_table(philr.dat)
+df <- as.data.frame(df)
+# filter data
+df.fac1 <- df[,which((names(df) %in% factor1)==TRUE)]
+df.fac2 <- df[,which((names(df) %in% factor2)==TRUE)]
+df.fac3 <- df[,which((names(df) %in% factor3)==TRUE)]
+# sum across all rows
+df.fac1 <- as.data.frame(rowSums(df.fac1))
+df.fac2 <- as.data.frame(rowSums(df.fac2))
+df.fac3 <- as.data.frame(rowSums(df.fac3))
+# merge data with metadata
+df.fac1.m <- merge(rawmetadata, df.fac1, by=0)
+df.fac2.m <- merge(rawmetadata, df.fac2, by=0)
+df.fac3.m <- merge(rawmetadata, df.fac3, by=0)
+# prep temperature category
+df.fac1.m$Temperature_C <- as.numeric(as.character(df.fac1.m$Temperature_C))
+df.fac2.m$Temperature_C <- as.numeric(as.character(df.fac2.m$Temperature_C))
+df.fac3.m$Temperature_C <- as.numeric(as.character(df.fac3.m$Temperature_C))
+df.fac1.m <- df.fac1.m[!is.na(df.fac1.m$Temperature_C),]
+df.fac2.m <- df.fac2.m[!is.na(df.fac2.m$Temperature_C),]
+df.fac3.m <- df.fac3.m[!is.na(df.fac3.m$Temperature_C),]
+df.fac1.m$Temp_C_bin <- cut(df.fac1.m$Temperature_C, breaks=10)
+df.fac2.m$Temp_C_bin <- cut(df.fac2.m$Temperature_C, breaks=10)
+df.fac3.m$Temp_C_bin <- cut(df.fac3.m$Temperature_C, breaks=10)
+# summarize data into bins
+df.fac1.sum <- data_summary(df.fac1.m, varname="rowSums(df.fac1)", groupnames=c("Temperature_C"))
+df.fac2.sum <- data_summary(df.fac2.m, varname="rowSums(df.fac2)", groupnames=c("Temperature_C"))
+df.fac3.sum <- data_summary(df.fac3.m, varname="rowSums(df.fac3)", groupnames=c("Temperature_C"))
+# clean up
+colnames(df.fac1.sum) <- c("Temperature_C", "factor", "sd")
+colnames(df.fac2.sum) <- c("Temperature_C", "factor", "sd")
+colnames(df.fac3.sum) <- c("Temperature_C", "factor", "sd")
+# plot
+png(paste("imgs/", "fact1_barplot_tempG.png", sep=""))
+ggplot(df.fac1.sum, aes(x=as.factor(Temperature_C), y=factor)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("ILR Transformed Read Counts") + geom_errorbar(aes(ymin=factor-sd, ymax=factor+sd), width=.2) + geom_point(df.fac1.sum, mapping=aes(x=as.factor(Temperature_C), y=factor)) + geom_jitter()
+dev.off()
+png(paste("imgs/", "fact2_barplot_tempG.png", sep=""))
+ggplot(df.fac2.sum, aes(x=as.factor(Temperature_C), y=factor)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("ILR Transformed Read Counts") + geom_errorbar(aes(ymin=factor-sd, ymax=factor+sd), width=.2) + geom_point(df.fac2.sum, mapping=aes(x=as.factor(Temperature_C), y=factor)) + geom_jitter()
+dev.off()
+png(paste("imgs/", "fact3_barplot_tempG.png", sep=""))
+ggplot(df.fac3.sum, aes(x=as.factor(Temperature_C), y=factor)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("ILR Transformed Read Counts") + geom_errorbar(aes(ymin=factor-sd, ymax=factor+sd), width=.2) + geom_point(df.fac3.sum, mapping=aes(x=as.factor(Temperature_C), y=factor)) + geom_jitter()
+dev.off()
+```
+
+![fact1 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact3_barplot_tempG.png)
+![fact2 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact3_barplot_tempG.png)
+![fact3 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact3_barplot_tempG.png)
 
 
 
