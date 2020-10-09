@@ -735,6 +735,55 @@ dev.off()
 ![fact2 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact2_barplot_tempG.png)
 ![fact3 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact3_barplot_tempG.png)
 
+### Random forest
 
+```R
+library(plyr)
+library(randomForest)
+library(rfUtilities)
+library(tidyverse)
+
+otu_table <- read.table("../01-raw_data_processing/sequence_table.16s.filtered.txt", sep="\t", header=T, row.names=1, stringsAsFactors=F, comment.char="")
+otu_table <- t(otu_table)
+metadata <- read.table("map.txt", sep="\t", header=T, row.names=1, stringsAsFactors=T, comment.char="")
+metadata <- metadata[metadata$Season %in% c("winter", "summer"),]
+metadata$Season <- factor(metadata$Season)
+otu_nonzero_counts <- apply(otu_table, 1, function(y) sum(length(which(y > 0))))
+
+remove_rare <- function( table , cutoff_pro ) {
+  row2keep <- c()
+  cutoff <- ceiling( cutoff_pro * ncol(table) )  
+  for ( i in 1:nrow(table) ) {
+    row_nonzero <- length( which( table[ i , ]  > 0 ) ) 
+    if ( row_nonzero > cutoff ) {
+      row2keep <- c( row2keep , i)
+    }
+  }
+  return( table [ row2keep , , drop=F ])
+}
+
+otu_table_rare_removed <- remove_rare(table=otu_table, cutoff_pro=0.1)
+otu_table_rare_removed_norm <- sweep(otu_table_rare_removed, 2, colSums(otu_table_rare_removed), '/')*100
+otu_table_scaled <- scale(otu_table_rare_removed_norm, center=T, scale=T)
+otu_table_scaled_var <- data.frame(t(otu_table_scaled))
+otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Season"]
+set.seed(151)
+rf_season <- randomForest(x=otu_table_scaled_var[,1:(ncol(otu_table_scaled_var)-1)], y=otu_table_scaled_var[, ncol(otu_table_scaled_var)], ntree=10000, importance=T, proximity=T)
+rf_season
+```
+
+```text
+Call:
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+               Type of random forest: classification
+                     Number of trees: 10000
+No. of variables tried at each split: 14
+
+        OOB estimate of  error rate: 6.9%
+Confusion matrix:
+       summer winter class.error
+summer     32      2  0.05882353
+winter      2     22  0.08333333
+```
 
 
