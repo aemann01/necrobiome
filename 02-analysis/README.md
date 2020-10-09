@@ -145,6 +145,16 @@ dev.off()
 ![pca matrix](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_matrix.png)
 ![pca temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_temp.png)
 
+Colored by surface temperature?
+
+```R
+png("imgs/pca_temperature_cont.png")
+autoplot(pca, data=rawmetadata, colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31)) + scale_color_gradient(low="blue",high="red")
+dev.off()
+```
+
+![pca temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_temperature_cont.png)
+
 ### Upset plot
 
 How many ASVs are shared between groups?
