@@ -768,6 +768,7 @@ otu_table_scaled <- scale(otu_table_rare_removed_norm, center=T, scale=T)
 otu_table_scaled_var <- data.frame(t(otu_table_scaled))
 otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Season"]
 set.seed(151)
+otu_table_scaled_var <- otu_table_scaled_var %>% filter(!is.na(var))
 rf_season <- randomForest(x=otu_table_scaled_var[,1:(ncol(otu_table_scaled_var)-1)], y=otu_table_scaled_var[, ncol(otu_table_scaled_var)], ntree=10000, importance=T, proximity=T)
 rf_season
 ```
@@ -786,4 +787,85 @@ summer     32      2  0.05882353
 winter      2     22  0.08333333
 ```
 
+Lysing matrix
+
+```R
+metadata <- metadata[metadata$Matrix %in% c("E", "A"),]
+metadata$Matrix <- factor(metadata$Matrix)
+otu_table_scaled_var <- data.frame(t(otu_table_scaled))
+otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Matrix"]
+set.seed(151)
+otu_table_scaled_var <- otu_table_scaled_var %>% filter(!is.na(var))
+rf_matrix <- randomForest(x=otu_table_scaled_var[,1:(ncol(otu_table_scaled_var)-1)], y=otu_table_scaled_var[, ncol(otu_table_scaled_var)], ntree=10000, importance=T, proximity=T)
+rf_matrix
+```
+
+```text
+Call:
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+               Type of random forest: classification
+                     Number of trees: 10000
+No. of variables tried at each split: 14
+
+        OOB estimate of  error rate: 55.93%
+Confusion matrix:
+   A  E class.error
+A 12 18   0.6000000
+E 15 14   0.5172414
+```
+
+Insects
+
+```R
+metadata <- metadata[metadata$Insects %in% c("y", "n"),]
+metadata$Insects <- factor(metadata$Insects)
+otu_table_scaled_var <- data.frame(t(otu_table_scaled))
+otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Insects"]
+set.seed(151)
+otu_table_scaled_var <- otu_table_scaled_var %>% filter(!is.na(var))
+rf_insects <- randomForest(x=otu_table_scaled_var[,1:(ncol(otu_table_scaled_var)-1)], y=otu_table_scaled_var[, ncol(otu_table_scaled_var)], ntree=10000, importance=T, proximity=T)
+rf_insects
+```
+
+```text
+Call:
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+               Type of random forest: classification
+                     Number of trees: 10000
+No. of variables tried at each split: 14
+
+        OOB estimate of  error rate: 8.33%
+Confusion matrix:
+   n  y class.error
+n 21  3  0.12500000
+y  1 23  0.04166667
+```
+
+Temp group
+
+```R
+metadata <- metadata[metadata$Temp_group %in% c("20C", "30C", "40C", "50C"),]
+metadata$Temp_group <- factor(metadata$Temp_group)
+otu_table_scaled_var <- data.frame(t(otu_table_scaled))
+otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Temp_group"]
+set.seed(151)
+otu_table_scaled_var <- otu_table_scaled_var %>% filter(!is.na(var))
+rf_tgroup <- randomForest(x=otu_table_scaled_var[,1:(ncol(otu_table_scaled_var)-1)], y=otu_table_scaled_var[, ncol(otu_table_scaled_var)], ntree=10000, importance=T, proximity=T)
+rf_tgroup
+```
+
+```text
+Call:
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+               Type of random forest: classification
+                     Number of trees: 10000
+No. of variables tried at each split: 14
+
+        OOB estimate of  error rate: 17.39%
+Confusion matrix:
+    20C 30C 40C class.error
+20C   2   5   1  0.75000000
+30C   0  27   1  0.03571429
+40C   0   1   9  0.10000000
+```
 
