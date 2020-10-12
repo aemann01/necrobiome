@@ -85,7 +85,8 @@ phy_tree()    Phylogenetic Tree: [ 2989 tips and 2988 internal nodes ]
 ### PHILR transformation
 
 ```R
-philr.dat <- transform_sample_counts(ps.dat, function(x) x+1) #add pseudocount of one to OTUs to avoid log-ratios involving zeros
+ps.dat.nocont <- subset_samples(ps.dat, Sample.type=="swab")
+philr.dat <- transform_sample_counts(ps.dat.nocont, function(x) x+1) #add pseudocount of one to OTUs to avoid log-ratios involving zeros
 is.rooted(phy_tree(philr.dat)) #check that tree is rooted
 # [1] TRUE
 is.binary.tree(phy_tree(philr.dat)) #check that multichotomies are resolved in tree
@@ -108,17 +109,14 @@ write.table(df2, "philr_cluster.txt", quote=F, sep="\t", col.names=NA)
 hcd <- as.dendrogram(hc)
 dend_data <- dendro_data(hcd, type="rectangle")
 cols <- brewer.pal(6, "Set2")
-p1 <- ggplot(dend_data$segments) + geom_segment(aes(x=x,y=y, xend=xend, yend=yend)) + theme_classic() + geom_text(data = dend_data$labels, aes(x, y, label = label, hjust = 1, angle = 90)) + ylim(-2,30) + xlab("") + ylab("") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) 
-merge <- merge(df2, rawmetadata, by.x=c("states"), by.y=c("SampleID"))
-p2 <- ggplot(merge, aes(states, y=1, fill=factor(merge$Season))) + geom_tile() + scale_fill_manual(values=cols) + scale_y_continuous(expand=c(0,0)) + theme(axis.title=element_blank(), axis.ticks=element_blank(), axis.text=element_blank(), legend.position="none")
-gp1<-ggplotGrob(p1)
-gp2<-ggplotGrob(p2)
-maxWidth <- grid::unit.pmax(gp1$widths[2:5], gp2$widths[2:5])
-gp1$widths[2:5] <- as.list(maxWidth)
-gp2$widths[2:5] <- as.list(maxWidth)
+tip_labels <- as.vector(dend_data$labels$label)
 png("imgs/philr_dendrogram_season.png")
-grid.arrange(gp1, gp2, ncol=1,heights=c(4/5,1/5,1/5))
+ggplot(dend_data$segments) + geom_segment(aes(x=x,y=y, xend=xend, yend=yend)) + theme_classic() + geom_text(data = dend_data$labels, aes(x, y, label = label, hjust = 1, angle = 90)) + ylim(-2,30) + xlab("") + ylab("") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) 
 dev.off()
+pdf("imgs/philr_dendrogram_season.pdf")
+ggplot(dend_data$segments) + geom_segment(aes(x=x,y=y, xend=xend, yend=yend)) + theme_classic() + geom_text(data = dend_data$labels, aes(x, y, label = label, hjust = 1, angle = 90)) + ylim(-2,30) + xlab("") + ylab("") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) 
+dev.off()
+merge <- merge(df2, rawmetadata, by.x=c("states"), by.y=c("SampleID"))
 ```
 
 ### PCA of PHILR distances
@@ -130,17 +128,16 @@ png("imgs/philr_screeplot.png")
 screeplot(pca)
 dev.off()
 png("imgs/pca_season.png")
-autoplot(pca, data=rawmetadata, colour="Season") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Season") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
 dev.off()
 png("imgs/pca_matrix.png")
-autoplot(pca, data=rawmetadata, colour="Matrix") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Matrix") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
 dev.off()
 png("imgs/pca_temp.png")
-autoplot(pca, data=rawmetadata, colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
 dev.off()
 ```
 ![screeplot](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/philr_screeplot.png)
-
 ![pca season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_season.png)
 ![pca matrix](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_matrix.png)
 ![pca temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_temp.png)
@@ -148,8 +145,10 @@ dev.off()
 Colored by surface temperature?
 
 ```R
+temp <- sample_data(ps.dat.nocont)
+temp$Temperature_C <- as.numeric(as.character(temp$Temperature_C))
 png("imgs/pca_temperature_cont.png")
-autoplot(pca, data=rawmetadata, colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31)) + scale_color_gradient(low="blue",high="red")
+autoplot(pca, data=temp, colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31)) + scale_color_gradient(low="blue",high="red")
 dev.off()
 ```
 
@@ -205,7 +204,7 @@ dev.off()
 Hard to see, collapse low abundant phyla into "other" category
 
 ```R
-physeq.2 <- filter_taxa(ps.dat, function(x) mean(x) > 0.1, TRUE) # remove low freq ASVs
+physeq.2 <- filter_taxa(ps.dat.nocont, function(x) mean(x) > 0.1, TRUE) # remove low freq ASVs
 physeq.3 <- transform_sample_counts(physeq.2, function(x) x/sum(x)) # get relative abundance
 glom <- tax_glom(physeq.3, taxrank=rank_names(physeq.3)[2]) # collapse at phylum level
 data <- psmelt(glom) # create dataframe from phyloseq object
@@ -230,6 +229,7 @@ medians
 Plot
 
 ```R
+data$SampleID <- factor(data$SampleID, levels=unique(data$SampleID))
 png("imgs/taxonomy_barchart.png")
 ggplot(data, aes(x=SampleID, y=Abundance, fill=V3)) + geom_bar(aes(), stat="identity", position="stack") + scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink")) + theme_minimal() + theme(axis.text.x = element_text(angle = 90))
 dev.off()
@@ -256,7 +256,7 @@ dev.off()
 Is there a difference in microbial diversity across samples by some metadata category?
 
 ```R
-metadata <- as(sample_data(ps.dat), "data.frame")
+metadata <- as(sample_data(ps.dat.nocont), "data.frame")
 adonis(philr.dist ~ Season, data=metadata)
 ```
 
@@ -270,9 +270,9 @@ Number of permutations: 999
 Terms added sequentially (first to last)
 
           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Season     2    2290.8  1145.4  7.0658 0.19591  0.001 ***
-Residuals 58    9401.9   162.1         0.80409
-Total     60   11692.7                 1.00000
+Season     1    2175.3 2175.31  12.978 0.18814  0.001 ***
+Residuals 56    9386.7  167.62         0.81186
+Total     57   11562.0                 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -290,10 +290,10 @@ Number of permutations: 999
 
 Terms added sequentially (first to last)
 
-          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Matrix     2     196.2  98.107 0.49495 0.01678  0.964
-Residuals 58   11496.5 198.215         0.98322
-Total     60   11692.7                 1.00000
+          Df SumsOfSqs MeanSqs F.Model     R2 Pr(>F)
+Matrix     1      70.5  70.494 0.34353 0.0061  0.983
+Residuals 56   11491.5 205.205         0.9939
+Total     57   11562.0                 1.0000
 ```
 
 ```R
@@ -310,9 +310,9 @@ Number of permutations: 999
 Terms added sequentially (first to last)
 
           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Insects    3    2976.4  992.15  6.4881 0.25456  0.001 ***
-Residuals 57    8716.3  152.92         0.74544
-Total     60   11692.7                 1.00000
+Insects    2    2735.3 1367.65   8.522 0.23658  0.001 ***
+Residuals 55    8826.7  160.48         0.76342
+Total     57   11562.0                 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -331,9 +331,9 @@ Number of permutations: 999
 Terms added sequentially (first to last)
 
            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Temp_group  4    3141.0  785.26  5.1422 0.26863  0.001 ***
-Residuals  56    8551.7  152.71         0.73137
-Total      60   11692.7                 1.00000
+Temp_group  4    3231.3  807.83  5.1395 0.27948  0.001 ***
+Residuals  53    8330.6  157.18         0.72052
+Total      57   11562.0                 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -879,3 +879,34 @@ Confusion matrix:
 40C   0   1   9  0.10000000
 ```
 
+What top 5 taxa are most important in the random forest models?
+
+```R
+png(paste("imgs/", "rf_season_importance.png", sep=""))
+varImpPlot(rf_season)
+dev.off()
+```
+
+![rf_season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/rf_season_importance.png)
+
+Season:
+1. ASV6	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
+2. ASV10	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
+3. ASV2	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Sporosarcina;Sporosarcina_unknown
+4. ASV4	Bacteria;Actinobacteria;Actinobacteria_c;Corynebacteriales;Corynebacteriaceae;Corynebacterium;Corynebacterium_unknown
+5. ASV25	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+
+```R
+png(paste("imgs/", "rf_insects_importance.png", sep=""))
+varImpPlot(rf_insects)
+dev.off()
+```
+
+![rf insects](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/rf_insects_importance.png)
+
+Insects:
+1. ASV3	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+2. ASV1	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+3. ASV73	Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus;Lactobacillus_unknown
+4. ASV89	Bacteria;Proteobacteria;Gammaproteobacteria;Enterobacterales;Morganellaceae;Providencia;Providencia_unknown
+5. ASV53	Bacteria;Firmicutes;Bacilli;Lactobacillales;Carnobacteriaceae;Trichococcus;Trichococcus_unknown
