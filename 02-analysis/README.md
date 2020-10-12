@@ -910,3 +910,40 @@ Insects:
 3. ASV73	Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus;Lactobacillus_unknown
 4. ASV89	Bacteria;Proteobacteria;Gammaproteobacteria;Enterobacterales;Morganellaceae;Providencia;Providencia_unknown
 5. ASV53	Bacteria;Firmicutes;Bacilli;Lactobacillales;Carnobacteriaceae;Trichococcus;Trichococcus_unknown
+
+### Correlation between temp/days in field and ratio between major phyla 
+
+added a pseudo count of 1 to get around divide by zero issues
+
+```R
+png(paste("imgs/", "corr_actino-firmi_temp.png", sep=""))
+qplot(as.numeric(as.character(seqtab.phylum$Temperature_C)), seqtab.phylum$actino.firmi, geom=c("point", "smooth")) + theme_minimal()
+dev.off()
+png(paste("imgs/", "corr_actino-proteo_temp.png", sep=""))
+qplot(as.numeric(as.character(seqtab.phylum$Temperature_C)), seqtab.phylum$actino.proteo, geom=c("point", "smooth")) + theme_minimal()
+dev.off()
+png(paste("imgs/", "corr_firmi-proteo_temp.png", sep=""))
+qplot(as.numeric(as.character(seqtab.phylum$Temperature_C)), seqtab.phylum$firmi.proteo, geom=c("point", "smooth")) + theme_minimal()
+dev.off()
+```
+
+![corr_temp1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-firmi_temp.png)
+![corr_temp2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-proteo_temp.png)
+![corr_temp3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_firmi-proteo_temp.png)
+
+
+```R
+png(paste("imgs/", "corr_actino-firmi_days.png", sep=""))
+qplot(seqtab.phylum$Temperature_C, seqtab.phylum$actino.firmi, geom=c("point", "smooth")) + theme_minimal()
+dev.off()
+png(paste("imgs/", "corr_actino-proteo_days.png", sep=""))
+qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$actino.proteo, geom=c("point", "smooth")) + theme_minimal()
+dev.off()
+png(paste("imgs/", "corr_firmi-proteo_days.png", sep=""))
+qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$firmi.proteo, geom=c("point", "smooth")) + theme_minimal()
+dev.off()
+```
+
+![corr_days1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-firmi_days.png)
+![corr_days2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-proteo_days.png)
+![corr_days3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_firmi-proteo_days.png)
