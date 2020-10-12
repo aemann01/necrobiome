@@ -934,7 +934,7 @@ dev.off()
 
 ```R
 png(paste("imgs/", "corr_actino-firmi_days.png", sep=""))
-qplot(seqtab.phylum$Temperature_C, seqtab.phylum$actino.firmi, geom=c("point", "smooth")) + theme_minimal()
+qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$actino.firmi, geom=c("point", "smooth")) + theme_minimal()
 dev.off()
 png(paste("imgs/", "corr_actino-proteo_days.png", sep=""))
 qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$actino.proteo, geom=c("point", "smooth")) + theme_minimal()
