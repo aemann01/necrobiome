@@ -39,6 +39,9 @@ library(phylofactor)
 library(ggtree)
 library(ALDEx2)
 library(microbiome)
+library(randomForest)
+library(rfUtilities)
+library(tidyverse)
 ```
 
 ### Load data into R
@@ -162,7 +165,7 @@ How many ASVs are shared between groups?
 map <- as.matrix(read.table("map.txt", header=T, sep="\t", row.names=1))
 merged <- merge(seqtab.filtered, map, by="row.names")
 n <- ncol(seqtab.filtered) + 1
-agg <- aggregate(merged[,2:n], by=list(merge$Season), FUN=sum) # first by season
+agg <- aggregate(merged[,2:n], by=list(merged$Season), FUN=sum) # first by season
 #remove columns with only zeros
 agg <- agg[,colSums(agg !=0) > 0]
 rownames(agg) <- agg$Group.1
@@ -173,7 +176,7 @@ agg <- data.frame(t(agg[,-1]))
 png("imgs/upset_seqson.png")
 upset(agg, order.by="freq", mainbar.y.label="Number of ASVs", sets.x.label="Shared ASVs per species", mb.ratio = c(0.55, 0.45))
 dev.off()
-agg <- aggregate(merged[,2:n], by=list(merge$Insects), FUN=sum) # by insect status
+agg <- aggregate(merged[,2:n], by=list(merged$Insects), FUN=sum) # by insect status
 #remove columns with only zeros
 agg <- agg[,colSums(agg !=0) > 0]
 rownames(agg) <- agg$Group.1
@@ -241,11 +244,21 @@ Alpha diversity
 
 ```R
 png("imgs/adiv_allsamp.png")
-plot_richness(ps.dat, measures=c("Observed", "Shannon"), color="Season") + theme_minimal()
+plot_richness(ps.dat.nocont, measures=c("Observed", "Shannon"), color="Season") + theme_minimal()
 dev.off()
 png("imgs/adiv_insect_season.png")
-plot_richness(ps.dat, x="Insects", color="Season", measures=c("Observed", "Shannon")) + theme_minimal()
+plot_richness(ps.dat.nocont, x="Insects", color="Season", measures=c("Observed", "Shannon")) + theme_minimal()
 dev.off()
+adiv <- estimate_richness(ps.dat.nocont)
+wilcox.test(adiv[grepl("W", rownames(adiv)),]$Observed, adiv[grepl("S", rownames(adiv)),]$Observed)
+```
+
+```text
+	Wilcoxon rank sum test with continuity correction
+
+data:  adiv[grepl("W", rownames(adiv)), ]$Observed and adiv[grepl("S", rownames(adiv)), ]$Observed
+W = 409, p-value = 0.9937
+alternative hypothesis: true location shift is not equal to 0
 ```
 
 ![adiv all](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/adiv_allsamp.png)
@@ -748,11 +761,6 @@ dev.off()
 ### Random forest
 
 ```R
-library(plyr)
-library(randomForest)
-library(rfUtilities)
-library(tidyverse)
-
 otu_table <- read.table("../01-raw_data_processing/sequence_table.16s.filtered.txt", sep="\t", header=T, row.names=1, stringsAsFactors=F, comment.char="")
 otu_table <- t(otu_table)
 metadata <- read.table("map.txt", sep="\t", header=T, row.names=1, stringsAsFactors=T, comment.char="")
@@ -885,6 +893,9 @@ What top 5 taxa are most important in the random forest models?
 png(paste("imgs/", "rf_season_importance.png", sep=""))
 varImpPlot(rf_season)
 dev.off()
+pdf(paste("imgs/", "rf_season_importance.pdf", sep=""))
+varImpPlot(rf_season)
+dev.off()
 ```
 
 ![rf_season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/rf_season_importance.png)
@@ -900,6 +911,9 @@ Season:
 png(paste("imgs/", "rf_insects_importance.png", sep=""))
 varImpPlot(rf_insects)
 dev.off()
+pdf(paste("imgs/", "rf_insects_importance.pdf", sep=""))
+varImpPlot(rf_insects)
+dev.off()
 ```
 
 ![rf insects](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/rf_insects_importance.png)
@@ -910,6 +924,35 @@ Insects:
 3. ASV73	Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus;Lactobacillus_unknown
 4. ASV89	Bacteria;Proteobacteria;Gammaproteobacteria;Enterobacterales;Morganellaceae;Providencia;Providencia_unknown
 5. ASV53	Bacteria;Firmicutes;Bacilli;Lactobacillales;Carnobacteriaceae;Trichococcus;Trichococcus_unknown
+
+Plot for figure
+
+```R
+impToPlot.season <- importance(rf_season, scale=F)[,3]
+impToPlot.season <- sort(impToPlot.season)
+short.imp <- tail(impToPlot.season, 10)
+pdf(paste("imgs/", "rf_season_importance.filt.pdf", sep=""))
+dotchart(short.imp, xlim=c(0.00, 0.06))
+dev.off()
+impToPlot.season <- importance(rf_season, scale=F)[,4]
+impToPlot.season <- sort(impToPlot.season)
+short.imp <- tail(impToPlot.season, 10)
+pdf(paste("imgs/", "rf_season_importance.filt.gini.pdf", sep=""))
+dotchart(short.imp, xlim=c(0.0, 2.5))
+dev.off()
+impToPlot.insect <- importance(rf_insects, scale=F)[,3]
+impToPlot.insect <- sort(impToPlot.insect)
+short.imp <- tail(impToPlot.insect, 10)
+pdf(paste("imgs/", "rf_insects_importance.filt.pdf", sep=""))
+dotchart(short.imp, xlim=c(0.00, 0.06))
+dev.off()
+impToPlot.insect <- importance(rf_insects, scale=F)[,4]
+impToPlot.insect <- sort(impToPlot.insect)
+short.imp <- tail(impToPlot.insect, 10)
+pdf(paste("imgs/", "rf_insects_importance.filt.gini.pdf", sep=""))
+dotchart(short.imp, xlim=c(0.0, 2.5))
+dev.off()
+```
 
 ### Correlation between temp/days in field and ratio between major phyla 
 
