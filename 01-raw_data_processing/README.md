@@ -53,17 +53,23 @@ library(phytools)
 
 ```R
 rawpath <- "raw"
-wdpath <- "~/necrobiome/01-raw_data_processing/" # if you didn't save to home folder, change to correct path
+wdpath <- "~/necrobiome/01-raw_data_processing/" # change to where git repository was cloned
 fnFs <- sort(list.files(rawpath, pattern="_R1_001.fastq.gz", full.names=T))
 fnRs <- sort(list.files(rawpath, pattern="_R2_001.fastq.gz", full.names=T))
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
-message("sample names:")
 sample.names
 ```
 
 ```text
-sample names:
-    'Blank''BlankE''Negctrl''NegCtrl''S01A''S02E''S04A''S05E''S06A''S07E''S08A''S09E''S10A''S11E''S12A''S13E''S14A''S15E''S16A''S17E''S18A''S19E''S20A''S21E''S24A''S25E''S26A''S27E''S30A''S31E''S32A''S33E''S34A''S35E''S36A''S37E''S48A''S49E''W03A''W04E''W06E''W07A''W09A''W10E''W11A''W12E''W13A''W14E''W15A''W16E''W17A''W18E''W19A''W20E''W23A''W24E''W25A''W26E''W27A''W28E''W29A''W30E''W31A''W32E'
+ [1] "BlankE"  "NegCtrl" "S01A"    "S02E"    "S04A"    "S05E"    "S06A"
+ [8] "S07E"    "S08A"    "S09E"    "S10A"    "S11E"    "S12A"    "S13E"
+[15] "S14A"    "S15E"    "S16A"    "S17E"    "S18A"    "S19E"    "S20A"
+[22] "S21E"    "S24A"    "S25E"    "S26A"    "S27E"    "S30A"    "S31E"
+[29] "S32A"    "S33E"    "S34A"    "S35E"    "S36A"    "S37E"    "S48A"
+[36] "S49E"    "W03A"    "W04E"    "W06E"    "W07A"    "W09A"    "W10E"
+[43] "W11A"    "W12E"    "W13A"    "W14E"    "W15A"    "W16E"    "W17A"
+[50] "W20E"    "W23A"    "W24E"    "W25A"    "W26E"    "W27A"    "W28E"
+[57] "W29A"    "W30E"    "W31A"    "W32E"
 ```
 
 ### 4. Plot quality scores
@@ -71,15 +77,11 @@ sample names:
 ```R
 system("mkdir img")
 pdf(paste(wdpath, "img/", "forward_quality_plot.pdf", sep=""))
-fq <- plotQualityProfile(fnFs[5:15])
-print(fq)
+plotQualityProfile(fnFs[30:35])
 dev.off()
 pdf(paste(wdpath, "img/", "reverse_quality_plot.pdf", sep=""))
-rq <- plotQualityProfile(fnRs[5:15])
-print(rq)
+plotQualityProfile(fnRs[30:35])
 dev.off()
-print(fq)
-print(rq)
 ```
 
 ![forward quality plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/forward_quality_plot.png)
@@ -128,9 +130,7 @@ retained
 
 ```text
                                  reads.in reads.out percentage_retained
-Blank_S35_L001_R1_001.fastq.gz     481523    436419            90.63305
 BlankE_S94_L001_R1_001.fastq.gz       958       487            50.83507
-Negctrl_S34_L001_R1_001.fastq.gz   293284    262418            89.47573
 NegCtrl_S95_L001_R1_001.fastq.gz     4056      3078            75.88757
 S01A_S68_L001_R1_001.fastq.gz      282815    257473            91.03937
 S02E_S69_L001_R1_001.fastq.gz      162192    148004            91.25234
@@ -179,8 +179,6 @@ W14E_S88_L001_R1_001.fastq.gz      125636    113540            90.37219
 W15A_S23_L001_R1_001.fastq.gz      417570    376836            90.24499
 W16E_S24_L001_R1_001.fastq.gz      277670    249288            89.77851
 W17A_S25_L001_R1_001.fastq.gz      299571    263847            88.07495
-W18E_S26_L001_R1_001.fastq.gz        4529      1787            39.45683
-W19A_S27_L001_R1_001.fastq.gz        1808       976            53.98230
 W20E_S28_L001_R1_001.fastq.gz      318742    272394            85.45909
 W23A_S89_L001_R1_001.fastq.gz      227815    205604            90.25042
 W24E_S90_L001_R1_001.fastq.gz      130542    118786            90.99447
@@ -199,11 +197,9 @@ W32E_S33_L001_R1_001.fastq.gz      459447    412766            89.83974
 ```R
 errF <- learnErrors(filtFs, multithread=T, random=T)
 errR <- learnErrors(filtRs, multithread=T, random=T)
-png(paste(wdpath, "imgs/", "error_plot.png", sep=""))
-ep <- plotErrors(errF, nominalQ=TRUE) 
-plot(ep)
+png(paste(wdpath, "img/", "error_plot.png", sep=""))
+plotErrors(errF, nominalQ=TRUE) 
 dev.off()
-print(ep)
 ```
 
 ![error plot](https://github.com/aemann01/necrobiome/blob/master/01-raw_data_processing/imgs/error_plot.png)
@@ -224,18 +220,18 @@ dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
 dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
 ```
 
-### 11. Filter out samples with fewer than 1000 reads
+### 11. Filter out samples with fewer than 10000 reads
 
 ```R
 getN <- function(x) sum(getUniques(x))
 track <- cbind(sapply(derepFs, getN), sapply(derepRs, getN), sapply(dadaFs, getN), sapply(dadaRs, getN))
-samples_to_keep <- track[,4] > 1000
+samples_to_keep <- track[,4] > 10000
 samples_to_remove <- names(samples_to_keep)[which(samples_to_keep == FALSE)]
 paste(samples_to_remove)
 ```
 
 ```text
-"BlankE" "W18E"   "W19A"
+[1] "BlankE"  "NegCtrl"
 ```
 
 ### 12. Merge paired end reads
@@ -252,7 +248,7 @@ dim(seqtab)
 ```
 
 ```text
-61 40439
+[1]    58 37473
 ```
 
 ### 14. Sequence length distribution plot
@@ -275,7 +271,8 @@ sum(seqtab.nochim)/sum(seqtab)
 ```
 
 ```text
-
+[1]   58 3028
+[1] 0.6887247
 ```
 
 ### 16. Processing summary
@@ -287,12 +284,6 @@ track <- cbind(track, 100-track[,6]/track[,5]*100, 100-track[,7]/track[,6]*100)
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nochimeras", "percent_singletons", "percent_chimeras")
 rownames(track) <- sample.names[samples_to_keep]
 track
-```
-
-```text
-Identified 37368 bimeras out of 40439 input sequences.
-61 3071
-0.683967
 ```
 
 ### 17. Save output
@@ -345,8 +336,8 @@ ASV1	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschiner
 ASV2	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Sporosarcina;Sporosarcina_unknown
 ASV3	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
 ASV4	Bacteria;Actinobacteria;Actinobacteria_c;Corynebacteriales;Corynebacteriaceae;Corynebacterium;Corynebacterium_unknown
-ASV5	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Planococcaceae_unknown;Planococcaceae_unknown
-ASV6	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
+ASV5	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
+ASV6	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Planococcaceae_unknown;Planococcaceae_unknown
 ASV7	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
 ASV8	Bacteria;Actinobacteria;Actinobacteria_c;Corynebacteriales;Nocardiaceae;Gordonia;Gordonia_unknown
 ASV9	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
@@ -360,11 +351,11 @@ ASV10	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Cl
 #first check if the row names of the taxonomy table match the column headers of the sequence table
 taxa <- read.table(newpath, header=T, sep="\t", row.names=1)
 length(which(row.names(taxa) %in% colnames(seqtab.nochim)))
-# [1] 3071
+# [1] 3028
 dim(taxa)
-# [1] 3071    2
+# [1] 3028    2
 dim(seqtab.nochim)
-# [1]   61 3071
+# [1]   58 3028
 #the number of taxa from the last three commands should match
 #now ensure that the taxa in the tables are in the same order #this should be true if you haven't reordered one or the other of these matrices inadvertently
 order.col <- row.names(taxa)
