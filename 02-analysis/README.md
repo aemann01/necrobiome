@@ -67,7 +67,7 @@ notinraw
 
 ```text
 character(0)
-character(0)
+[1] "BlankE"  "NegCtrl"
 ```
 
 Now create a phyloseq object from different files
@@ -79,10 +79,10 @@ ps.dat
 ```
 ```text
 phyloseq-class experiment-level object
-otu_table()   OTU Table:         [ 2989 taxa and 61 samples ]
-sample_data() Sample Data:       [ 61 samples by 17 sample variables ]
-tax_table()   Taxonomy Table:    [ 2989 taxa by 7 taxonomic ranks ]
-phy_tree()    Phylogenetic Tree: [ 2989 tips and 2988 internal nodes ]
+otu_table()   OTU Table:         [ 2879 taxa and 58 samples ]
+sample_data() Sample Data:       [ 58 samples by 22 sample variables ]
+tax_table()   Taxonomy Table:    [ 2879 taxa by 7 taxonomic ranks ]
+phy_tree()    Phylogenetic Tree: [ 2879 tips and 2878 internal nodes ]
 ```
 
 ### PHILR transformation
@@ -131,13 +131,13 @@ png("imgs/philr_screeplot.png")
 screeplot(pca)
 dev.off()
 png("imgs/pca_season.png")
-autoplot(pca, data=sample_data(ps.dat.nocont), colour="Season") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Season") + theme_minimal() 
 dev.off()
 png("imgs/pca_matrix.png")
-autoplot(pca, data=sample_data(ps.dat.nocont), colour="Matrix") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Matrix") + theme_minimal() 
 dev.off()
 png("imgs/pca_temp.png")
-autoplot(pca, data=sample_data(ps.dat.nocont), colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31))
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Temperature_C") + theme_minimal() 
 dev.off()
 ```
 ![screeplot](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/philr_screeplot.png)
@@ -151,7 +151,7 @@ Colored by surface temperature?
 temp <- sample_data(ps.dat.nocont)
 temp$Temperature_C <- as.numeric(as.character(temp$Temperature_C))
 png("imgs/pca_temperature_cont.png")
-autoplot(pca, data=temp, colour="Temperature_C") + theme_minimal() + xlim(c(-0.25, 0.31)) + ylim(c(-0.25, 0.31)) + scale_color_gradient(low="blue",high="red")
+autoplot(pca, data=temp, colour="Temperature_C") + theme_minimal() + scale_color_gradient(low="blue",high="red")
 dev.off()
 ```
 
@@ -220,13 +220,13 @@ medians
 ```text
                V3     median
 1      < 1% abund 0.00000000
-2  Actinobacteria 0.12674612
-3 Armatimonadetes 0.04565219
-4   Bacteroidetes 0.07443391
-5 Deferribacteres 0.01040156
-6      Firmicutes 0.48802825
-7  Proteobacteria 0.22158059
-8     Tenericutes 0.01152360
+2  Actinobacteria 0.11948640
+3 Armatimonadetes 0.04146412
+4   Bacteroidetes 0.07630162
+5 Deferribacteres 0.01073772
+6      Firmicutes 0.52327533
+7  Proteobacteria 0.19213305
+8     Tenericutes 0.01108594
 ```
 
 Plot
@@ -257,7 +257,7 @@ wilcox.test(adiv[grepl("W", rownames(adiv)),]$Observed, adiv[grepl("S", rownames
 	Wilcoxon rank sum test with continuity correction
 
 data:  adiv[grepl("W", rownames(adiv)), ]$Observed and adiv[grepl("S", rownames(adiv)), ]$Observed
-W = 409, p-value = 0.9937
+W = 407, p-value = 0.9937
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -283,9 +283,9 @@ Number of permutations: 999
 Terms added sequentially (first to last)
 
           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Season     1    2175.3 2175.31  12.978 0.18814  0.001 ***
-Residuals 56    9386.7  167.62         0.81186
-Total     57   11562.0                 1.00000
+Season     1    1827.0  1827.0  12.076 0.17739  0.001 ***
+Residuals 56    8472.7   151.3         0.82261
+Total     57   10299.8                 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -303,10 +303,10 @@ Number of permutations: 999
 
 Terms added sequentially (first to last)
 
-          Df SumsOfSqs MeanSqs F.Model     R2 Pr(>F)
-Matrix     1      70.5  70.494 0.34353 0.0061  0.983
-Residuals 56   11491.5 205.205         0.9939
-Total     57   11562.0                 1.0000
+          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+Matrix     1      59.8  59.836 0.32723 0.00581  0.991
+Residuals 56   10239.9 182.856         0.99419
+Total     57   10299.8                 1.00000
 ```
 
 ```R
@@ -323,9 +323,9 @@ Number of permutations: 999
 Terms added sequentially (first to last)
 
           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Insects    2    2735.3 1367.65   8.522 0.23658  0.001 ***
-Residuals 55    8826.7  160.48         0.76342
-Total     57   11562.0                 1.00000
+Insects    2    2410.8 1205.38  8.4035 0.23406  0.001 ***
+Residuals 55    7889.0  143.44         0.76594
+Total     57   10299.8                 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -344,9 +344,9 @@ Number of permutations: 999
 Terms added sequentially (first to last)
 
            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
-Temp_group  4    3231.3  807.83  5.1395 0.27948  0.001 ***
-Residuals  53    8330.6  157.18         0.72052
-Total      57   11562.0                 1.00000
+Temp_group  4    2804.0  700.99  4.9564 0.27224  0.001 ***
+Residuals  53    7495.8  141.43         0.72776
+Total      57   10299.8                 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -357,22 +357,23 @@ Differentially abundant taxa between groups
 
 ```R
 OTUTable <- as.matrix(t(seqtab.filtered))
-filt.list <- colnames(OTUTable)
-filt.list <- filt.list[-1:-3] # remove blanks
-filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
-filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
+remove <- c("BlankE", "NegCtrl")
+filtmap <- rawmetadata[!rawmetadata$SampleID %in% remove,]
 filtmap$Season <- droplevels(filtmap$Season) # drop blank level
 x <- as.factor(filtmap$Season) 
 tree <- phy_tree(philr.dat)
 tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
 common.otus <- which(rowSums(OTUTable>0)>10)
 OTUTable <- OTUTable[common.otus,]
-OTUTable <- OTUTable[,filt.list] # filter out blanks
+OTUTable <- OTUTable[rownames(OTUTable) %in% tree$tip.label,]
 tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
 PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
 PF$Data <- PF$Data[PF$tree$tip.label,]
 gtree <- pf.tree(PF,layout="rectangular")
 png("imgs/phylofactor_tree.png")
+gtree$ggplot + geom_tiplab()
+dev.off()
+pdf("imgs/phylofactor_tree.pdf")
 gtree$ggplot + geom_tiplab()
 dev.off()
 ```
@@ -390,6 +391,9 @@ dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor1_boxp.png")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
 dev.off()
+pdf("imgs/factor1_boxp.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
 wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 ```
 
@@ -397,7 +401,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 145, p-value = 1.425e-05
+W = 533, p-value = 0.0488
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -410,6 +414,9 @@ dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor2_boxp.png")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
 dev.off()
+pdf("imgs/factor2_boxp.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
+dev.off()
 wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 ```
 
@@ -417,7 +424,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 692, p-value = 2.125e-06
+W = 592, p-value = 0.003246
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -430,6 +437,9 @@ dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor3_boxp.png")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
 dev.off()
+pdf("imgs/factor3_boxp.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
+dev.off()
 wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 ```
 
@@ -437,7 +447,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 654, p-value = 5.661e-05
+W = 260, p-value = 0.01903
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -449,17 +459,16 @@ By temperature group
 
 ```R
 OTUTable <- as.matrix(t(seqtab.filtered))
-filt.list <- colnames(OTUTable)
-filt.list <- filt.list[-1:-3] # remove blanks
-filtmap <- rawmetadata[rawmetadata$SampleID %in% filt.list,]
-filtmap <- filtmap[match(filt.list, filtmap$SampleID),]
-filtmap$Season <- droplevels(filtmap$Temp_group) # drop blank level
+remove <- c("BlankE", "NegCtrl", "S48A", "S49E")
+filtmap <- rawmetadata[!rawmetadata$SampleID %in% remove,]
+filtmap$Temp_group <- droplevels(filtmap$Temp_group) # drop blank level
 x <- as.factor(filtmap$Temp_group) 
 tree <- phy_tree(philr.dat)
 tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
 common.otus <- which(rowSums(OTUTable>0)>10)
 OTUTable <- OTUTable[common.otus,]
-OTUTable <- OTUTable[,filt.list] # filter out blanks
+OTUTable <- OTUTable[rownames(OTUTable) %in% tree$tip.label,]
+OTUTable <- OTUTable[, !colnames(OTUTable) %in% remove]
 tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
 PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
 PF$Data <- PF$Data[PF$tree$tip.label,]
@@ -483,6 +492,9 @@ dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor1_boxp_tempG.png")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
 dev.off()
+pdf("imgs/factor1_boxp_tempG.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
 ```
 
 Factor 2:
@@ -494,6 +506,9 @@ dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor2_boxp_tempG.png")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
 dev.off()
+pdf("imgs/factor2_boxp_tempG.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
+dev.off()
 ```
 
 Factor 3:
@@ -503,6 +518,9 @@ y <- t(PF$basis[,3]) %*% log(PF$Data)
 dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
 dat$V2 <- as.numeric(as.character(dat$V2))
 png("imgs/factor3_boxp_tempG.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
+dev.off()
+pdf("imgs/factor3_boxp_tempG.pdf")
 ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
 dev.off()
 ```
