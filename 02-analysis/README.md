@@ -259,10 +259,10 @@ Alpha diversity
 
 ```R
 png("imgs/adiv_allsamp.png")
-plot_richness(ps.dat.nocont, measures=c("Observed", "Shannon"), color="Season") + theme_minimal()
+plot_richness(ps.dat, measures=c("Observed", "Shannon"), color="Season") + theme_minimal()
 dev.off()
 png("imgs/adiv_insect_season.png")
-plot_richness(ps.dat.nocont, x="Insects", color="Season", measures=c("Observed", "Shannon")) + theme_minimal()
+plot_richness(ps.dat, x="Insects", color="Season", measures=c("Observed", "Shannon")) + theme_minimal()
 dev.off()
 adiv <- estimate_richness(ps.dat.nocont)
 wilcox.test(adiv[grepl("W", rownames(adiv)),]$Observed, adiv[grepl("S", rownames(adiv)),]$Observed)
