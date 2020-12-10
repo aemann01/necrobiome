@@ -207,7 +207,7 @@ dev.off()
 Hard to see, collapse low abundant phyla into "other" category
 
 ```R
-physeq.2 <- filter_taxa(ps.dat.nocont, function(x) mean(x) > 0.1, TRUE) # remove low freq ASVs
+physeq.2 <- filter_taxa(ps.dat, function(x) mean(x) > 0.1, TRUE) # remove low freq ASVs
 physeq.3 <- transform_sample_counts(physeq.2, function(x) x/sum(x)) # get relative abundance
 glom <- tax_glom(physeq.3, taxrank=rank_names(physeq.3)[2]) # collapse at phylum level
 data <- psmelt(glom) # create dataframe from phyloseq object
@@ -229,12 +229,27 @@ medians
 8     Tenericutes 0.01108594
 ```
 
+Get sorted mapping file for diversity figure
+
+```R
+sortmap <- map[order(match(rownames(map), tip_labels)),]
+write.table(sortmap, "map_sorted_by_cluster.txt", sep="\t")
+```
+
 Plot
 
 ```R
 data$SampleID <- factor(data$SampleID, levels=unique(data$SampleID))
 png("imgs/taxonomy_barchart.png")
 ggplot(data, aes(x=SampleID, y=Abundance, fill=V3)) + geom_bar(aes(), stat="identity", position="stack") + scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink")) + theme_minimal() + theme(axis.text.x = element_text(angle = 90))
+dev.off()
+# order by dendrogram for figure
+data2 <- data %>%
+mutate(Sample = factor(Sample, levels = tip_labels)) %>%
+arrange(Sample)
+data2$SampleID <- factor(data2$SampleID, levels=unique(data2$SampleID))
+pdf("imgs/taxonomy_barchart.pdf")
+ggplot(data2, aes(x=SampleID, y=Abundance, fill=V3)) + geom_bar(aes(), stat="identity", position="stack") + scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink")) + theme_minimal() + theme(axis.text.x = element_text(angle = 90))
 dev.off()
 ```
 
