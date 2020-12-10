@@ -529,6 +529,80 @@ dev.off()
 ![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp_tempG.png)
 ![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp_tempG.png)
 
+By Insect activity
+
+```R
+OTUTable <- as.matrix(t(seqtab.filtered))
+remove <- c("BlankE", "NegCtrl")
+filtmap <- rawmetadata[!rawmetadata$SampleID %in% remove,]
+filtmap$Insects <- droplevels(filtmap$Insects) # drop blank level
+x <- as.factor(filtmap$Insects) 
+tree <- phy_tree(philr.dat)
+tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
+common.otus <- which(rowSums(OTUTable>0)>10)
+OTUTable <- OTUTable[common.otus,]
+OTUTable <- OTUTable[rownames(OTUTable) %in% tree$tip.label,]
+OTUTable <- OTUTable[, !colnames(OTUTable) %in% remove]
+tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
+PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
+PF$Data <- PF$Data[PF$tree$tip.label,]
+gtree <- pf.tree(PF,layout="rectangular")
+png("imgs/phylofactor_tree_insects.png")
+gtree$ggplot + geom_tiplab()
+dev.off()
+pdf("imgs/phylofactor_tree_insects.pdf")
+gtree$ggplot + geom_tiplab()
+dev.off()
+```
+
+![phylo tree tg](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree_insects.png)
+
+Factor 1:
+
+```R
+y <- t(PF$basis[,1]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor1_boxp_insects.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
+pdf("imgs/factor1_boxp_insects.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
+dev.off()
+```
+
+Factor 2:
+
+```R
+y <- t(PF$basis[,2]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor2_boxp_insects.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
+dev.off()
+pdf("imgs/factor2_boxp_insects.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
+dev.off()
+```
+
+Factor 3:
+
+```R
+y <- t(PF$basis[,3]) %*% log(PF$Data)
+dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
+dat$V2 <- as.numeric(as.character(dat$V2))
+png("imgs/factor3_boxp_insects.png")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
+dev.off()
+pdf("imgs/factor3_boxp_insects.pdf")
+ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
+dev.off()
+```
+
+![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp_insects.png)
+![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp_insects.png)
+![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp_insects.png)
+
 ### Differential abundance 
 
 First need to format for qiime2 (transpose sequence table beforehand, columns = samples, rows = ASV IDs)
