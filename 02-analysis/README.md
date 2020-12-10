@@ -900,7 +900,7 @@ rf_season
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
@@ -927,16 +927,16 @@ rf_matrix
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 55.93%
+        OOB estimate of  error rate: 65.52%
 Confusion matrix:
    A  E class.error
-A 12 18   0.6000000
-E 15 14   0.5172414
+A 10 19   0.6551724
+E 19 10   0.6551724
 ```
 
 Insects
@@ -954,16 +954,16 @@ rf_insects
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 8.33%
+        OOB estimate of  error rate: 6.25%
 Confusion matrix:
    n  y class.error
-n 21  3  0.12500000
-y  1 23  0.04166667
+n 21  3       0.125
+y  0 24       0.000
 ```
 
 Temp group
@@ -981,16 +981,16 @@ rf_tgroup
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 17.39%
+        OOB estimate of  error rate: 21.74%
 Confusion matrix:
     20C 30C 40C class.error
-20C   2   5   1  0.75000000
-30C   0  27   1  0.03571429
+20C   1   6   1  0.87500000
+30C   0  26   2  0.07142857
 40C   0   1   9  0.10000000
 ```
 
