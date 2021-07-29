@@ -225,7 +225,7 @@ dev.off()
 Hard to see, collapse low abundant phyla into "other" category
 
 ```R
-physeq.2 <- filter_taxa(ps.dat.nocont, function(x) mean(x) > 0.1, TRUE) # remove low freq ASVs
+physeq.2 <- filter_taxa(ps.dat, function(x) mean(x) > 0.1, TRUE) # remove low freq ASVs
 physeq.3 <- transform_sample_counts(physeq.2, function(x) x/sum(x)) # get relative abundance
 glom <- tax_glom(physeq.3, taxrank=rank_names(physeq.3)[2]) # collapse at phylum level
 data <- psmelt(glom) # create dataframe from phyloseq object
@@ -247,12 +247,27 @@ medians
 8     Tenericutes 0.01108594
 ```
 
+Get sorted mapping file for diversity figure
+
+```R
+sortmap <- map[order(match(rownames(map), tip_labels)),]
+write.table(sortmap, "map_sorted_by_cluster.txt", sep="\t")
+```
+
 Plot
 
 ```R
 data$SampleID <- factor(data$SampleID, levels=unique(data$SampleID))
 png("imgs/taxonomy_barchart.png")
 ggplot(data, aes(x=SampleID, y=Abundance, fill=V3)) + geom_bar(aes(), stat="identity", position="stack") + scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink")) + theme_minimal() + theme(axis.text.x = element_text(angle = 90))
+dev.off()
+# order by dendrogram for figure
+data2 <- data %>%
+mutate(Sample = factor(Sample, levels = tip_labels)) %>%
+arrange(Sample)
+data2$SampleID <- factor(data2$SampleID, levels=unique(data2$SampleID))
+pdf("imgs/taxonomy_barchart.pdf")
+ggplot(data2, aes(x=SampleID, y=Abundance, fill=V3)) + geom_bar(aes(), stat="identity", position="stack") + scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink")) + theme_minimal() + theme(axis.text.x = element_text(angle = 90))
 dev.off()
 ```
 
@@ -262,10 +277,10 @@ Alpha diversity
 
 ```R
 png("imgs/adiv_allsamp.png")
-plot_richness(ps.dat.nocont, measures=c("Observed", "Shannon"), color="Season") + theme_minimal()
+plot_richness(ps.dat, measures=c("Observed", "Shannon"), color="Season") + theme_minimal()
 dev.off()
 png("imgs/adiv_insect_season.png")
-plot_richness(ps.dat.nocont, x="Insects", color="Season", measures=c("Observed", "Shannon")) + theme_minimal()
+plot_richness(ps.dat, x="Insects", color="Season", measures=c("Observed", "Shannon")) + theme_minimal()
 dev.off()
 adiv <- estimate_richness(ps.dat.nocont)
 wilcox.test(adiv[grepl("W", rownames(adiv)),]$Observed, adiv[grepl("S", rownames(adiv)),]$Observed)
@@ -1098,7 +1113,7 @@ rf_season
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
@@ -1125,16 +1140,16 @@ rf_matrix
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 55.93%
+        OOB estimate of  error rate: 65.52%
 Confusion matrix:
    A  E class.error
-A 12 18   0.6000000
-E 15 14   0.5172414
+A 10 19   0.6551724
+E 19 10   0.6551724
 ```
 
 Insects
@@ -1152,16 +1167,16 @@ rf_insects
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 8.33%
+        OOB estimate of  error rate: 6.25%
 Confusion matrix:
    n  y class.error
-n 21  3  0.12500000
-y  1 23  0.04166667
+n 21  3       0.125
+y  0 24       0.000
 ```
 
 Temp group
@@ -1179,16 +1194,16 @@ rf_tgroup
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 17.39%
+        OOB estimate of  error rate: 21.74%
 Confusion matrix:
     20C 30C 40C class.error
-20C   2   5   1  0.75000000
-30C   0  27   1  0.03571429
+20C   1   6   1  0.87500000
+30C   0  26   2  0.07142857
 40C   0   1   9  0.10000000
 ```
 
