@@ -11,6 +11,7 @@
 # install.packages("UpSetR")
 # install.packages("vegan")
 # install.packages("ggfortify")
+# install.packages("ggrepel")
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #    install.packages("BiocManager")
 # BiocManager::install("philr")
@@ -42,6 +43,7 @@ library(microbiome)
 library(randomForest)
 library(rfUtilities)
 library(tidyverse)
+library(ggrepel)
 ```
 
 ### Load data into R
@@ -80,7 +82,7 @@ ps.dat
 ```text
 phyloseq-class experiment-level object
 otu_table()   OTU Table:         [ 2879 taxa and 58 samples ]
-sample_data() Sample Data:       [ 58 samples by 22 sample variables ]
+sample_data() Sample Data:       [ 58 samples by 31 sample variables ]
 tax_table()   Taxonomy Table:    [ 2879 taxa by 7 taxonomic ranks ]
 phy_tree()    Phylogenetic Tree: [ 2879 tips and 2878 internal nodes ]
 ```
@@ -139,11 +141,27 @@ dev.off()
 png("imgs/pca_temp.png")
 autoplot(pca, data=sample_data(ps.dat.nocont), colour="Temperature_C") + theme_minimal() 
 dev.off()
+png("imgs/pca_bmi.png")
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="BMI_classification") + theme_minimal() 
+dev.off()
+png("imgs/pca_sex.png")
+autoplot(pca, data=sample_data(ps.dat.nocont), colour="Sex") + theme_minimal() 
+dev.off()
+png("imgs/pca_bodyID.png")
+autoplot(pca, data=sample_data(ps.dat.nocont)) + theme_minimal() + geom_label_repel(aes(label=Body_id, colour=Body_id), box.padding=0.35, point.padding=0.5, segment.color='grey50', max.overlaps=15, cex=1.5)
+dev.off()
+pdf("imgs/pca_bodyID.pdf")
+autoplot(pca, data=sample_data(ps.dat.nocont)) + theme_minimal() + geom_label_repel(aes(label=Body_id, colour=Body_id), box.padding=0.35, point.padding=0.5, segment.color='grey50', max.overlaps=15, cex=1.5)
+dev.off()
 ```
 ![screeplot](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/philr_screeplot.png)
 ![pca season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_season.png)
 ![pca matrix](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_matrix.png)
 ![pca temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_temp.png)
+![pca bmi](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_bmi.png)
+![pca sex](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_sex.png)
+![pca bodyID](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_bodyID.png)
+
 
 Colored by surface temperature?
 
@@ -351,6 +369,48 @@ Total      57   10299.8                 1.00000
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
+```R
+adonis(philr.dist ~ Sex, data=metadata)
+```
+
+```text
+Call:
+adonis(formula = philr.dist ~ Sex, data = metadata)
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+Sex        1     885.2  885.24  5.2656 0.08595  0.002 **
+Residuals 56    9414.5  168.12         0.91405
+Total     57   10299.8                 1.00000
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+```R
+adonis(philr.dist ~ BMI_classification, data=metadata)
+```
+
+```text
+Call:
+adonis(formula = philr.dist ~ BMI_classification, data = metadata)
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+                   Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+BMI_classification  4    2187.3  546.82  3.5725 0.21236  0.001 ***
+Residuals          53    8112.5  153.07         0.78764
+Total              57   10299.8                 1.00000
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
 ### Phylofactor
 
 Differentially abundant taxa between groups
@@ -401,7 +461,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 533, p-value = 0.0488
+W = 52, p-value = 2.72e-10
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -424,7 +484,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 592, p-value = 0.003246
+W = 771, p-value = 8.248e-11
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -447,7 +507,7 @@ wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
 	Wilcoxon rank sum test
 
 data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 260, p-value = 0.01903
+W = 712, p-value = 2.731e-07
 alternative hypothesis: true location shift is not equal to 0
 ```
 
@@ -605,11 +665,15 @@ dev.off()
 
 ### Differential abundance 
 
+```bash
+conda activate qiime2-2020.8
+```
+
 First need to format for qiime2 (transpose sequence table beforehand, columns = samples, rows = ASV IDs)
 
 ```R
-system("biom convert -i ../01-raw_data_processing/sequence_table.16s.filtered.tr.txt -o sequence_table.16s.filtered.biom --table-type="OTU table" --to-hdf5")
-system("biom summarize-table -i sequence_table.16s.filtered.biom")
+biom convert -i ../01-raw_data_processing/sequence_table.16s.filtered.tr.txt -o sequence_table.16s.filtered.biom --table-type='OTU table' --to-hdf5
+biom summarize-table -i sequence_table.16s.filtered.biom
 ```
 ```text
 Num samples: 61
@@ -690,72 +754,221 @@ S36A: 295,081.000
 S34A: 328,813.000
 ```
 
-```R
-system("qiime tools import --input-path sequence_table.16s.filtered.biom --type 'FeatureTable[Frequency]' --input-format BIOMV210Format --output-path sequence_table.16s.filtered.qza")
+```bash
+qiime tools import --input-path sequence_table.16s.filtered.biom --type 'FeatureTable[Frequency]' --input-format BIOMV210Format --output-path sequence_table.16s.filtered.qza
 ```
 
 Now can run ALDEx plugin through qiime
 
 ```R
-system("qiime feature-table filter-samples --i-table sequence_table.16s.filtered.qza --m-metadata-file map.txt --p-where "[Sample-type]='swab'" --o-filtered-table swab-feature-table.qza")
-system("qiime aldex2 aldex2 --i-table swab-feature-table.qza --m-metadata-file map.txt --m-metadata-column Season --output-dir season_aldex")
-system("qiime aldex2 effect-plot --i-table season_aldex/differentials.qza --o-visualization season_aldex/season")
-system("qiime tools view season_aldex/season.qzv")
+qiime feature-table filter-samples --i-table sequence_table.16s.filtered.qza --m-metadata-file map.txt --p-where "[Sample-type]='swab'" --o-filtered-table swab-feature-table.qza
+qiime aldex2 aldex2 --i-table swab-feature-table.qza --m-metadata-file map.txt --m-metadata-column Season --output-dir season_aldex
+qiime aldex2 effect-plot --i-table season_aldex/differentials.qza --o-visualization season_aldex/season
+qiime tools view season_aldex/season.qzv
 ```
 
 ![aldex season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/season_aldex/effect_plot.png)
 
 
 ```R
-system("qiime aldex2 extract-differences --i-table season_aldex/differentials.qza --o-differentials season_aldex/season --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0")
-system("qiime tools export --input-path season_aldex/season.qza --output-path season_aldex/")
-system("awk '{print $1}' season_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > season_aldex/differentials.taxonomy.txt")
-system("head season_aldex/differentials.taxonomy.txt")
+qiime aldex2 extract-differences --i-table season_aldex/differentials.qza --o-differentials season_aldex/season --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0
+qiime tools export --input-path season_aldex/season.qza --output-path season_aldex/
+awk '{print $1}' season_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > season_aldex/differentials.taxonomy.txt
+head season_aldex/differentials.taxonomy.txt
 ```
 
 ```text
 ASV4	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
-ASV5	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
-ASV6	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV5	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV6	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
 ASV7	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
 ASV10	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
 ASV16	Bacteria	Proteobacteria	Betaproteobacteria	Burkholderiales	Burkholderiaceae	Paraburkholderia	Paraburkholderia_unknown
 ASV17	Bacteria	Firmicutes	Clostridia	Clostridiales	Peptostreptococcaceae	Peptostreptococcaceae_unknown	Peptostreptococcaceae_unknown
 ASV20	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV22	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
+ASV22	Bacteria	Firmicutes	Erysipelotrichi	Erysipelotrichales	Erysipelotrichaceae	Erysipelotrichaceae_unknown	Erysipelotrichaceae_unknown
 ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
 ```
 
 Low vs high temperature -- first need to filter out the na sample from mapping file (delete in excel) and then filter from qza
 
 ```R
-system("qiime feature-table filter-samples --i-table swab-feature-table.qza --m-metadata-file map.filt.txt --o-filtered-table swab-feature-table.filt.qza")
-system("qiime aldex2 aldex2 --i-table swab-feature-table.filt.qza --m-metadata-file map.filt.txt --m-metadata-column Temp_group_binary --output-dir temp-low-hi_aldex")
-system("qiime aldex2 effect-plot --i-table temp-low-hi_aldex/differentials.qza --o-visualization temp-low-hi_aldex/temp-low-hi")
-system("qiime tools view temp-low-hi_aldex/temp-low-hi.qzv")
+qiime feature-table filter-samples --i-table swab-feature-table.qza --m-metadata-file map.filt.txt --o-filtered-table swab-feature-table.filt.qza
+qiime aldex2 aldex2 --i-table swab-feature-table.filt.qza --m-metadata-file map.filt.txt --m-metadata-column Temp_group_binary --output-dir temp-low-hi_aldex
+qiime aldex2 effect-plot --i-table temp-low-hi_aldex/differentials.qza --o-visualization temp-low-hi_aldex/temp-low-hi
+qiime tools view temp-low-hi_aldex/temp-low-hi.qzv
 ```
 
 ![aldex season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/temp-low-hi_aldex/effect_plot.png)
 
 ```R
-system("qiime aldex2 extract-differences --i-table temp-low-hi_aldex/differentials.qza --o-differentials temp-low-hi_aldex/temp-low-hi --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0")
-system("qiime tools export --input-path temp-low-hi_aldex/temp-low-hi.qza --output-path temp-low-hi_aldex/")
-system("awk '{print $1}' temp-low-hi_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > temp-low-hi_aldex/differentials.taxonomy.txt")
-system("head temp-low-hi_aldex/differentials.taxonomy.txt")
+qiime aldex2 extract-differences --i-table temp-low-hi_aldex/differentials.qza --o-differentials temp-low-hi_aldex/temp-low-hi --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0
+qiime tools export --input-path temp-low-hi_aldex/temp-low-hi.qza --output-path temp-low-hi_aldex/
+awk '{print $1}' temp-low-hi_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > temp-low-hi_aldex/differentials.taxonomy.txt
+head temp-low-hi_aldex/differentials.taxonomy.txt
 ```
 
 ```text
 ASV4	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
-ASV5	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
-ASV6	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV5	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
+ASV6	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
 ASV10	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
 ASV16	Bacteria	Proteobacteria	Betaproteobacteria	Burkholderiales	Burkholderiaceae	Paraburkholderia	Paraburkholderia_unknown
 ASV20	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV22	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
+ASV22	Bacteria	Firmicutes	Erysipelotrichi	Erysipelotrichales	Erysipelotrichaceae	Erysipelotrichaceae_unknown	Erysipelotrichaceae_unknown
 ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
 ASV26	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
 ASV32	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Morganellaceae	Providencia	Providencia_unknown
 ```
+
+### Beta dispersion
+
+```R
+dispr <- vegan::betadisper(philr.dist, phyloseq::sample_data(ps.dat.nocont)$Season)
+dispr
+```
+
+```text
+	Homogeneity of multivariate dispersions
+
+Call: vegan::betadisper(d = philr.dist, group =
+phyloseq::sample_data(ps.dat.nocont)$Season)
+
+No. of Positive Eigenvalues: 57
+No. of Negative Eigenvalues: 0
+
+Average distance to median:
+summer winter
+ 11.49  11.71
+
+Eigenvalues for PCoA axes:
+(Showing 8 of 57 eigenvalues)
+ PCoA1  PCoA2  PCoA3  PCoA4  PCoA5  PCoA6  PCoA7  PCoA8
+2884.0 2465.0 1063.1  546.6  439.1  374.7  319.5  245.1
+```
+
+```R
+permutest(dispr)
+```
+
+```text
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df Sum Sq Mean Sq      F N.Perm Pr(>F)
+Groups     1   0.67  0.6732 0.0394    999  0.872
+Residuals 56 956.64 17.0828
+```
+
+```R
+dispr <- vegan::betadisper(philr.dist, phyloseq::sample_data(ps.dat.nocont)$Sex)
+dispr
+```
+
+```text
+	Homogeneity of multivariate dispersions
+
+Call: vegan::betadisper(d = philr.dist, group =
+phyloseq::sample_data(ps.dat.nocont)$Sex)
+
+No. of Positive Eigenvalues: 57
+No. of Negative Eigenvalues: 0
+
+Average distance to median:
+Female   Male
+ 13.09  11.77
+
+Eigenvalues for PCoA axes:
+(Showing 8 of 57 eigenvalues)
+ PCoA1  PCoA2  PCoA3  PCoA4  PCoA5  PCoA6  PCoA7  PCoA8
+2884.0 2465.0 1063.1  546.6  439.1  374.7  319.5  245.1
+```
+
+```R
+permutest(dispr)
+```
+
+```text
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df Sum Sq Mean Sq      F N.Perm Pr(>F)
+Groups     1  24.74  24.745 2.2261    999  0.128
+Residuals 56 622.49  11.116
+```
+
+```R
+dispr <- vegan::betadisper(philr.dist, phyloseq::sample_data(ps.dat.nocont)$BMI_classification)
+dispr
+```
+
+```text
+	Homogeneity of multivariate dispersions
+
+Call: vegan::betadisper(d = philr.dist, group =
+phyloseq::sample_data(ps.dat.nocont)$BMI_classification)
+
+No. of Positive Eigenvalues: 57
+No. of Negative Eigenvalues: 0
+
+Average distance to median:
+         na      normal       obese  overweight underweight
+      1.416      13.722      10.054      10.800       2.306
+
+Eigenvalues for PCoA axes:
+(Showing 8 of 57 eigenvalues)
+ PCoA1  PCoA2  PCoA3  PCoA4  PCoA5  PCoA6  PCoA7  PCoA8
+2884.0 2465.0 1063.1  546.6  439.1  374.7  319.5  245.1
+```
+
+```R
+permutest(dispr)
+```
+
+```text
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df Sum Sq Mean Sq      F N.Perm Pr(>F)
+Groups     4 705.51 176.378 27.396    999  0.001 ***
+Residuals 53 341.22   6.438
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+NOTE: This is probably driven by higher number of "normal" individuals, only one underweight individual
+
+
+```R
+png("imgs/betadispr_bmi_type.png")
+boxplot(dispr)
+dev.off()
+```
+
+![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/betadispr_bmi_type.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### OLD BELOW
 
 Clostridium seems to be very high in high temp, very low in low, plot these along temperature gradient. First merge with taxonomy. Open in excel and get values from clostridium.
 
