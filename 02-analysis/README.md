@@ -411,6 +411,38 @@ Total              57   10299.8                 1.00000
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
+Effect of metadata within season
+
+```R
+# filter on season
+ps.dat.summer <- subset_samples(ps.dat, Season=="summer")
+ps.dat.winter <- subset_samples(ps.dat, Season=="winter")
+# get distance matrix for each
+
+
+
+
+
+philr.dat.summer <- transform_sample_counts(ps.dat.summer, function(x) x+1) #add pseudocount of one to OTUs to avoid log-ratios involving zeros
+phy_tree(philr.dat.summer) <- makeNodeLabel(phy_tree(philr.dat.summer), method="number", prefix="n")
+otu.table.summer <- otu_table(philr.dat.summer)
+tree.summer <- phy_tree(philr.dat.summer)
+metadata.summer <- sample_data(philr.dat.summer)
+tax.summer <- tax_table(philr.dat.summer)
+philr.t.summer <- philr(otu.table.summer, tree.summer, part.weights="enorm.x.gm.counts", ilr.weights="blw.sqrt")
+philr.dist.summer <- dist(philr.t.summer, method="euclidean")
+
+
+
+
+
+
+
+
+
+
+
+
 ### Phylofactor
 
 Differentially abundant taxa between groups
