@@ -418,30 +418,177 @@ Effect of metadata within season
 ps.dat.summer <- subset_samples(ps.dat, Season=="summer")
 ps.dat.winter <- subset_samples(ps.dat, Season=="winter")
 # get distance matrix for each
-
-
-
-
-
 philr.dat.summer <- transform_sample_counts(ps.dat.summer, function(x) x+1) #add pseudocount of one to OTUs to avoid log-ratios involving zeros
 phy_tree(philr.dat.summer) <- makeNodeLabel(phy_tree(philr.dat.summer), method="number", prefix="n")
 otu.table.summer <- otu_table(philr.dat.summer)
 tree.summer <- phy_tree(philr.dat.summer)
-metadata.summer <- sample_data(philr.dat.summer)
+metadata.summer <- as(sample_data(ps.dat.summer), "data.frame")
 tax.summer <- tax_table(philr.dat.summer)
 philr.t.summer <- philr(otu.table.summer, tree.summer, part.weights="enorm.x.gm.counts", ilr.weights="blw.sqrt")
 philr.dist.summer <- dist(philr.t.summer, method="euclidean")
+# winter
+philr.dat.winter <- transform_sample_counts(ps.dat.winter, function(x) x+1) #add pseudocount of one to OTUs to avoid log-ratios involving zeros
+phy_tree(philr.dat.winter) <- makeNodeLabel(phy_tree(philr.dat.winter), method="number", prefix="n")
+otu.table.winter <- otu_table(philr.dat.winter)
+tree.winter <- phy_tree(philr.dat.winter)
+metadata.winter <- as(sample_data(ps.dat.winter), "data.frame")
+tax.winter <- tax_table(philr.dat.winter)
+philr.t.winter <- philr(otu.table.winter, tree.winter, part.weights="enorm.x.gm.counts", ilr.weights="blw.sqrt")
+philr.dist.winter <- dist(philr.t.winter, method="euclidean")
+```
 
+Testing insects, temp_group, sex, and bmi_classification within season, only significant results reported below
 
+```R
+adonis(philr.dist.summer ~ Insects, data = metadata.summer)
+```
 
+```text
+Call:
+adonis(formula = philr.dist.summer ~ Insects, data = metadata.summer) 
 
+Permutation: free
+Number of permutations: 999
 
+Terms added sequentially (first to last)
 
+          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+Insects    2    2908.4 1454.21  3.2852 0.17488  0.002 **
+Residuals 31   13722.2  442.65         0.82512          
+Total     33   16630.6                 1.00000          
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
 
+```R
+adonis(philr.dist.summer ~ Temp_group, data=metadata.summer)
+```
 
+```text
+Call:
+adonis(formula = philr.dist.summer ~ Temp_group, data = metadata.summer) 
 
+Permutation: free
+Number of permutations: 999
 
+Terms added sequentially (first to last)
 
+           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+Temp_group  3    4086.2 1362.08  3.2574 0.24571  0.001 ***
+Residuals  30   12544.4  418.15         0.75429           
+Total      33   16630.6                 1.00000           
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+```R
+adonis(philr.dist.summer ~ Sex, data = metadata.summer)
+```
+
+```text
+Call:
+adonis(formula = philr.dist.summer ~ Sex, data = metadata.summer) 
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+Sex        1    3362.3  3362.3  8.1092 0.20218  0.001 ***
+Residuals 32   13268.3   414.6         0.79782           
+Total     33   16630.6                 1.00000           
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+```R
+adonis(philr.dist.summer ~ BMI_classification, data = metadata.summer)
+```
+
+```text
+Call:
+adonis(formula = philr.dist.summer ~ BMI_classification, data = metadata.summer) 
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+                   Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+BMI_classification  2      2943 1471.51  3.3327 0.17696  0.003 **
+Residuals          31     13688  441.53         0.82304          
+Total              33     16631                 1.00000          
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+Winter
+
+```R
+adonis(philr.dist.winter ~ Insects, data = metadata.winter)
+```
+
+```text
+Call:
+adonis(formula = philr.dist.winter ~ Insects, data = metadata.winter) 
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+Insects    1    3184.3  3184.3   20.79 0.48586  0.001 ***
+Residuals 22    3369.7   153.2         0.51414           
+Total     23    6554.0                 1.00000           
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+```R
+adonis(philr.dist.winter ~ Temp_group, data=metadata.winter)
+```
+
+```text
+Call:
+adonis(formula = philr.dist.winter ~ Temp_group, data = metadata.winter) 
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+Temp_group  1    1226.0 1225.96  5.0621 0.18705  0.011 *
+Residuals  22    5328.1  242.19         0.81295         
+Total      23    6554.0                 1.00000         
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+Sex not statistically significant in winter
+
+```R
+adonis(philr.dist.winter ~ BMI_classification, data = metadata.winter)
+```
+
+```text
+Call:
+adonis(formula = philr.dist.winter ~ BMI_classification, data = metadata.winter) 
+
+Permutation: free
+Number of permutations: 999
+
+Terms added sequentially (first to last)
+
+                   Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+BMI_classification  4    2818.0  704.49  3.5827 0.42996  0.004 **
+Residuals          19    3736.1  196.64         0.57004          
+Total              23    6554.0                 1.00000          
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
 
 ### Phylofactor
 
