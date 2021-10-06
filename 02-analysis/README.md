@@ -175,6 +175,23 @@ dev.off()
 
 ![pca temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/pca_temperature_cont.png)
 
+### Bray curtis biplot
+
+```R
+phylum.sum <- tapply(taxa_sums(ps.dat.nocont), tax_table(ps.dat.nocont)[,"V3"], sum, na.rm=T)
+top6phyla <- names(sort(phylum.sum, T))[1:5]
+ps1 <- prune_taxa((tax_table(ps.dat.nocont)[,"V3"] %in% top6phyla), ps.dat.nocont)
+ps1.ord <- ordinate(ps1, "NMDS", "bray")
+pdf("biplot.pdf")
+plot_ordination(ps1, ps1.ord, type="split", color="V3", label="Body_id", shape="Season") + theme_minimal() + coord_flip() + scale_x_reverse()
+dev.off()
+png("biplot.png")
+plot_ordination(ps1, ps1.ord, type="split", color="V3", label="Body_id", shape="Season") + theme_minimal() + coord_flip() + scale_x_reverse()
+dev.off()
+```
+
+![biplot](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/biplot.png)
+
 ### Upset plot
 
 How many ASVs are shared between groups?
