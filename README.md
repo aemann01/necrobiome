@@ -1,6 +1,6 @@
 # necrobiome
 
-This repository describes the analysis performed in the paper /////.
+This repository describes the analysis performed in the paper *Tarone et al.* ///////.
 
 ## Setup
 
