@@ -607,347 +607,126 @@ Total              23    6554.0                 1.00000
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
-### Phylofactor
-
-Differentially abundant taxa between groups
-
-```R
-OTUTable <- as.matrix(t(seqtab.filtered))
-remove <- c("BlankE", "NegCtrl")
-filtmap <- rawmetadata[!rawmetadata$SampleID %in% remove,]
-filtmap$Season <- droplevels(filtmap$Season) # drop blank level
-x <- as.factor(filtmap$Season) 
-tree <- phy_tree(philr.dat)
-tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
-common.otus <- which(rowSums(OTUTable>0)>10)
-OTUTable <- OTUTable[common.otus,]
-OTUTable <- OTUTable[rownames(OTUTable) %in% tree$tip.label,]
-tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
-PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
-PF$Data <- PF$Data[PF$tree$tip.label,]
-gtree <- pf.tree(PF,layout="rectangular")
-png("imgs/phylofactor_tree.png")
-gtree$ggplot + geom_tiplab()
-dev.off()
-pdf("imgs/phylofactor_tree.pdf")
-gtree$ggplot + geom_tiplab()
-dev.off()
-```
-
-![phylo tree](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree.png)
-
-Boxplots and significance levels for each factor
-
-Factor 1:
-
-```R
-y <- t(PF$basis[,1]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor1_boxp.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor1_boxp.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
-dev.off()
-wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
-```
-
-```text
-	Wilcoxon rank sum test
-
-data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 52, p-value = 2.72e-10
-alternative hypothesis: true location shift is not equal to 0
-```
-
-Factor 2:
-
-```R
-y <- t(PF$basis[,2]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor2_boxp.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor2_boxp.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
-dev.off()
-wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
-```
-
-```text
-	Wilcoxon rank sum test
-
-data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 771, p-value = 8.248e-11
-alternative hypothesis: true location shift is not equal to 0
-```
-
-Factor 3:
-
-```R
-y <- t(PF$basis[,3]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor3_boxp.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor3_boxp.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
-dev.off()
-wilcox.test(dat[dat$V1 == "summer",]$V2, dat[dat$V1 == "winter",]$V2)
-```
-
-```text
-	Wilcoxon rank sum test
-
-data:  dat[dat$V1 == "summer", ]$V2 and dat[dat$V1 == "winter", ]$V2
-W = 712, p-value = 2.731e-07
-alternative hypothesis: true location shift is not equal to 0
-```
-
-![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp.png)
-![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp.png)
-![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp.png)
-
-By temperature group
-
-```R
-OTUTable <- as.matrix(t(seqtab.filtered))
-remove <- c("BlankE", "NegCtrl", "S48A", "S49E")
-filtmap <- rawmetadata[!rawmetadata$SampleID %in% remove,]
-filtmap$Temp_group <- droplevels(filtmap$Temp_group) # drop blank level
-x <- as.factor(filtmap$Temp_group) 
-tree <- phy_tree(philr.dat)
-tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
-common.otus <- which(rowSums(OTUTable>0)>10)
-OTUTable <- OTUTable[common.otus,]
-OTUTable <- OTUTable[rownames(OTUTable) %in% tree$tip.label,]
-OTUTable <- OTUTable[, !colnames(OTUTable) %in% remove]
-tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
-PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
-PF$Data <- PF$Data[PF$tree$tip.label,]
-gtree <- pf.tree(PF,layout="rectangular")
-png("imgs/phylofactor_tree_tempG.png")
-gtree$ggplot + geom_tiplab()
-dev.off()
-pdf("imgs/phylofactor_tree_tempG.pdf")
-gtree$ggplot + geom_tiplab()
-dev.off()
-```
-
-![phylo tree tg](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree_tempG.png)
-
-Factor 1:
-
-```R
-y <- t(PF$basis[,1]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor1_boxp_tempG.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor1_boxp_tempG.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
-dev.off()
-```
-
-Factor 2:
-
-```R
-y <- t(PF$basis[,2]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor2_boxp_tempG.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor2_boxp_tempG.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
-dev.off()
-```
-
-Factor 3:
-
-```R
-y <- t(PF$basis[,3]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor3_boxp_tempG.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor3_boxp_tempG.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
-dev.off()
-```
-
-![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp_tempG.png)
-![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp_tempG.png)
-![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp_tempG.png)
-
-By Insect activity
-
-```R
-OTUTable <- as.matrix(t(seqtab.filtered))
-remove <- c("BlankE", "NegCtrl")
-filtmap <- rawmetadata[!rawmetadata$SampleID %in% remove,]
-filtmap$Insects <- droplevels(filtmap$Insects) # drop blank level
-x <- as.factor(filtmap$Insects) 
-tree <- phy_tree(philr.dat)
-tax <- read.table("tax_for_phyloseq.txt", sep="\t", header=T)
-common.otus <- which(rowSums(OTUTable>0)>10)
-OTUTable <- OTUTable[common.otus,]
-OTUTable <- OTUTable[rownames(OTUTable) %in% tree$tip.label,]
-OTUTable <- OTUTable[, !colnames(OTUTable) %in% remove]
-tree <- ape::drop.tip(tree, setdiff(tree$tip.label, rownames(OTUTable)))
-PF <- PhyloFactor(OTUTable, tree, x, nfactors=3)
-PF$Data <- PF$Data[PF$tree$tip.label,]
-gtree <- pf.tree(PF,layout="rectangular")
-png("imgs/phylofactor_tree_insects.png")
-gtree$ggplot + geom_tiplab()
-dev.off()
-pdf("imgs/phylofactor_tree_insects.pdf")
-gtree$ggplot + geom_tiplab()
-dev.off()
-```
-
-![phylo tree tg](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/phylofactor_tree_insects.png)
-
-Factor 1:
-
-```R
-y <- t(PF$basis[,1]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor1_boxp_insects.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor1_boxp_insects.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[1]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 1') + ylim(c(-3.5,9.5))
-dev.off()
-```
-
-Factor 2:
-
-```R
-y <- t(PF$basis[,2]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor2_boxp_insects.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor2_boxp_insects.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[2]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 2') + ylim(c(-3.5,9.5))
-dev.off()
-```
-
-Factor 3:
-
-```R
-y <- t(PF$basis[,3]) %*% log(PF$Data)
-dat <- as.data.frame(cbind(as.matrix(PF$X), (t(y))))
-dat$V2 <- as.numeric(as.character(dat$V2))
-png("imgs/factor3_boxp_insects.png")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
-dev.off()
-pdf("imgs/factor3_boxp_insects.pdf")
-ggplot(dat, aes(x=dat$V1, y=dat$V2)) + geom_boxplot(fill=gtree$legend$colors[3]) + theme_classic() + ylab("ILR abundance") + xlab("") + ggtitle('Factor 3') + ylim(c(-3.5,9.5))
-dev.off()
-```
-
-![factor1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor1_boxp_insects.png)
-![factor2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor2_boxp_insects.png)
-![factor3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/factor3_boxp_insects.png)
-
 ### Differential abundance 
 
+Activate qiime2 environment
+
 ```bash
-conda activate qiime2-2020.8
+conda activate qiime2-2020.2
 ```
 
-First need to format for qiime2 (transpose sequence table beforehand, columns = samples, rows = ASV IDs)
+Install ALDEx2 through R
 
 ```R
-biom convert -i ../01-raw_data_processing/sequence_table.16s.filtered.tr.txt -o sequence_table.16s.filtered.biom --table-type='OTU table' --to-hdf5
+install.packages("BiocManager")
+BiocManager::install("ALDEx2")
+```
+
+Install qiime ALDEx2 plugin through conda
+
+```bash
+conda install -c dgiguere q2-aldex2
+```
+
+Transpose biom table
+
+```bash
+awk '
+{
+    for (i=1; i<=NF; i++)  {
+        a[NR,i] = $i
+    }
+}
+NF>p { p = NF }
+END {
+    for(j=1; j<=p; j++) {
+        str=a[1,j]
+        for(i=2; i<=NR; i++){
+            str=str" "a[i,j];
+        }
+        print str
+    }
+}' sequence_table.16s.filtered.txt | sed 's/ /\t/g' > sequence_table.16s.filtered.tr.txt
+```
+
+```bash
+biom convert -i sequence_table.16s.filtered.tr.txt -o sequence_table.16s.filtered.biom --table-type='OTU table' --to-hdf5
 biom summarize-table -i sequence_table.16s.filtered.biom
 ```
 ```text
-Num samples: 61
-Num observations: 2,989
-Total count: 7,928,033
-Table density (fraction of non-zero values): 0.047
+Num samples: 58
+Num observations: 2,954
+Total count: 7,694,223
+Table density (fraction of non-zero values): 0.048
 
 Counts/sample summary:
- Min: 2,394.000
- Max: 328,813.000
- Median: 119,915.000
- Mean: 129,967.754
- Std. dev.: 66,955.954
+ Min: 16,020.000
+ Max: 336,515.000
+ Median: 124,689.000
+ Mean: 132,659.017
+ Std. dev.: 66,606.669
  Sample Metadata Categories: None provided
  Observation Metadata Categories: None provided
 
 Counts/sample detail:
-NegCtrl: 2,394.000
-S48A: 16,000.000
-W07A: 44,641.000
-W12E: 47,275.000
-W11A: 50,547.000
-S13E: 52,958.000
-S07E: 59,115.000
-S24A: 61,119.000
-S33E: 64,722.000
-W04E: 66,235.000
-S09E: 67,009.000
-W14E: 71,210.000
-S31E: 77,538.000
-S25E: 80,651.000
-W24E: 80,996.000
-W03A: 83,347.000
-W13A: 85,035.000
-S08A: 87,589.000
-S10A: 92,886.000
-S15E: 95,415.000
-W28E: 97,112.000
-S32A: 99,606.000
-S49E: 100,502.000
-Negctrl: 101,417.000
-W30E: 107,583.000
-S06A: 109,901.000
-S16A: 110,355.000
-S12A: 110,985.000
-W09A: 116,494.000
-S11E: 117,369.000
-S26A: 119,915.000
-W27A: 122,649.000
-S04A: 123,121.000
-W17A: 124,667.000
-W20E: 126,772.000
-W16E: 129,583.000
-W31A: 131,180.000
-S02E: 132,168.000
-W26E: 135,470.000
-W06E: 135,878.000
-W29A: 138,578.000
-W25A: 147,346.000
-W10E: 147,675.000
-S27E: 152,616.000
-S19E: 162,642.000
-S05E: 163,124.000
-S30A: 166,900.000
-W23A: 173,031.000
-S20A: 182,490.000
-S14A: 189,895.000
-W32E: 190,175.000
-S21E: 201,080.000
-S17E: 210,433.000
-S01A: 211,940.000
-S18A: 219,883.000
-W15A: 229,232.000
-S37E: 249,545.000
-Blank: 249,745.000
-S35E: 278,400.000
-S36A: 295,081.000
-S34A: 328,813.000
+S48A: 16,020.000
+W07A: 44,672.000
+W12E: 47,493.000
+W11A: 50,879.000
+S13E: 51,681.000
+S07E: 59,190.000
+S24A: 61,351.000
+S33E: 64,224.000
+W04E: 66,186.000
+S09E: 69,232.000
+W14E: 71,479.000
+S31E: 76,573.000
+S25E: 81,041.000
+W03A: 82,321.000
+W24E: 82,708.000
+W13A: 84,908.000
+S08A: 88,837.000
+S10A: 92,993.000
+S15E: 96,206.000
+S32A: 97,258.000
+W28E: 97,368.000
+S49E: 100,765.000
+S12A: 107,710.000
+W30E: 107,912.000
+S16A: 109,860.000
+S06A: 111,400.000
+W09A: 119,388.000
+S11E: 119,455.000
+W27A: 124,238.000
+S26A: 125,140.000
+W17A: 125,184.000
+W20E: 127,919.000
+S04A: 128,248.000
+W16E: 130,601.000
+S02E: 132,464.000
+W31A: 133,023.000
+W06E: 134,716.000
+W26E: 135,620.000
+W29A: 139,534.000
+W25A: 147,663.000
+W10E: 150,912.000
+S27E: 159,327.000
+S30A: 167,832.000
+S19E: 173,258.000
+W23A: 174,604.000
+S05E: 175,855.000
+S14A: 189,582.000
+W32E: 190,243.000
+S20A: 194,536.000
+S17E: 208,105.000
+S01A: 210,705.000
+S21E: 216,643.000
+W15A: 229,778.000
+S18A: 238,232.000
+S37E: 251,537.000
+S35E: 286,416.000
+S36A: 296,683.000
+S34A: 336,515.000
 ```
 
 ```bash
@@ -956,17 +735,12 @@ qiime tools import --input-path sequence_table.16s.filtered.biom --type 'Feature
 
 Now can run ALDEx plugin through qiime
 
-```R
+Differential abundance by season
+
+```bash
 qiime feature-table filter-samples --i-table sequence_table.16s.filtered.qza --m-metadata-file map.txt --p-where "[Sample-type]='swab'" --o-filtered-table swab-feature-table.qza
 qiime aldex2 aldex2 --i-table swab-feature-table.qza --m-metadata-file map.txt --m-metadata-column Season --output-dir season_aldex
 qiime aldex2 effect-plot --i-table season_aldex/differentials.qza --o-visualization season_aldex/season
-qiime tools view season_aldex/season.qzv
-```
-
-![aldex season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/season_aldex/effect_plot.png)
-
-
-```R
 qiime aldex2 extract-differences --i-table season_aldex/differentials.qza --o-differentials season_aldex/season --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0
 qiime tools export --input-path season_aldex/season.qza --output-path season_aldex/
 awk '{print $1}' season_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > season_aldex/differentials.taxonomy.txt
@@ -974,47 +748,40 @@ head season_aldex/differentials.taxonomy.txt
 ```
 
 ```text
-ASV4	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
-ASV5	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV6	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
-ASV7	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV10	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV16	Bacteria	Proteobacteria	Betaproteobacteria	Burkholderiales	Burkholderiaceae	Paraburkholderia	Paraburkholderia_unknown
-ASV17	Bacteria	Firmicutes	Clostridia	Clostridiales	Peptostreptococcaceae	Peptostreptococcaceae_unknown	Peptostreptococcaceae_unknown
-ASV20	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV22	Bacteria	Firmicutes	Erysipelotrichi	Erysipelotrichales	Erysipelotrichaceae	Erysipelotrichaceae_unknown	Erysipelotrichaceae_unknown
-ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
+ASV4    Bacteria    Actinobacteria  Actinobacteria_c    Corynebacteriales   Corynebacteriaceae  Corynebacterium Corynebacterium_unknown
+ASV5    Bacteria    Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
+ASV6    Bacteria    Firmicutes  Bacilli Bacillales  Planococcaceae  Planococcaceae_unknown  Planococcaceae_unknown
+ASV10   Bacteria    Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
+ASV16   Bacteria    Proteobacteria  Betaproteobacteria  Burkholderiales Burkholderiaceae    Paraburkholderia    Paraburkholderia_unknown
+ASV17   Bacteria    Firmicutes  Clostridia  Clostridiales   PeptostreptococcaceaePeptostreptococcaceae_unknown  Peptostreptococcaceae_unknown
+ASV20   Bacteria    Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
+ASV21   Bacteria    Actinobacteria  Actinobacteria_c    Corynebacteriales   Corynebacteriaceae  Corynebacterium Corynebacterium_unknown
+ASV23   Bacteria    Firmicutes  Bacilli Bacillales  Planococcaceae  Planococcaceae_unknown  Planococcaceae_unknown
+ASV26   Bacteria    Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
 ```
 
-Low vs high temperature -- first need to filter out the na sample from mapping file (delete in excel) and then filter from qza
+Differential abundance by sex
 
-```R
-qiime feature-table filter-samples --i-table swab-feature-table.qza --m-metadata-file map.filt.txt --o-filtered-table swab-feature-table.filt.qza
-qiime aldex2 aldex2 --i-table swab-feature-table.filt.qza --m-metadata-file map.filt.txt --m-metadata-column Temp_group_binary --output-dir temp-low-hi_aldex
-qiime aldex2 effect-plot --i-table temp-low-hi_aldex/differentials.qza --o-visualization temp-low-hi_aldex/temp-low-hi
-qiime tools view temp-low-hi_aldex/temp-low-hi.qzv
-```
-
-![aldex season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/temp-low-hi_aldex/effect_plot.png)
-
-```R
-qiime aldex2 extract-differences --i-table temp-low-hi_aldex/differentials.qza --o-differentials temp-low-hi_aldex/temp-low-hi --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0
-qiime tools export --input-path temp-low-hi_aldex/temp-low-hi.qza --output-path temp-low-hi_aldex/
-awk '{print $1}' temp-low-hi_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > temp-low-hi_aldex/differentials.taxonomy.txt
-head temp-low-hi_aldex/differentials.taxonomy.txt
+```bash
+qiime aldex2 aldex2 --i-table swab-feature-table.qza --m-metadata-file map.txt --m-metadata-column Sex --output-dir sex_aldex
+qiime aldex2 effect-plot --i-table sex_aldex/differentials.qza --o-visualization sex_aldex/season
+qiime aldex2 extract-differences --i-table sex_aldex/differentials.qza --o-differentials sex_aldex/sex --p-sig-threshold 0.1 --p-effect-threshold 0 --p-difference-threshold 0
+qiime tools export --input-path sex_aldex/sex.qza --output-path sex_aldex/
+awk '{print $1}' sex_aldex/differentials.tsv | grep "ASV" | while read line; do grep -w $line tax_for_phyloseq.txt ; done > sex_aldex/differentials.taxonomy.txt
+head sex_aldex/differentials.taxonomy.txt
 ```
 
 ```text
-ASV4	Bacteria	Actinobacteria	Actinobacteria_c	Corynebacteriales	Corynebacteriaceae	Corynebacterium	Corynebacterium_unknown
-ASV5	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV6	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
-ASV10	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV16	Bacteria	Proteobacteria	Betaproteobacteria	Burkholderiales	Burkholderiaceae	Paraburkholderia	Paraburkholderia_unknown
-ASV20	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV22	Bacteria	Firmicutes	Erysipelotrichi	Erysipelotrichales	Erysipelotrichaceae	Erysipelotrichaceae_unknown	Erysipelotrichaceae_unknown
-ASV23	Bacteria	Firmicutes	Bacilli	Bacillales	Planococcaceae	Planococcaceae_unknown	Planococcaceae_unknown
-ASV26	Bacteria	Firmicutes	Clostridia	Clostridiales	Clostridiaceae	Clostridium	Clostridium_unknown
-ASV32	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Morganellaceae	Providencia	Providencia_unknown
+ASV2    Bacteria    Firmicutes  Bacilli Bacillales  Planococcaceae  Sporosarcina    Sporosarcina_unknown
+ASV6    Bacteria    Firmicutes  Bacilli Bacillales  Planococcaceae  Planococcaceae_unknown  Planococcaceae_unknown
+ASV17   Bacteria    Firmicutes  Clostridia  Clostridiales   PeptostreptococcaceaePeptostreptococcaceae_unknown  Peptostreptococcaceae_unknown
+ASV28   Bacteria    Firmicutes  Tissierellia    Tissierellales  Tissierellaceae Tissierellaceae_unknown Tissierellaceae_unknown
+ASV33   Bacteria    Firmicutes  Clostridia  Clostridiales   Ruminococcaceae Eubacterium_g23 Eubacterium_g23_unknown
+ASV42   Bacteria    Firmicutes  Tissierellia    Tissierellales  Peptoniphilaceae    Peptoniphilaceae_unknown    Peptoniphilaceae_unknown
+ASV43   Bacteria    Firmicutes  Tissierellia    Tissierellales  Tissierellaceae Tissierellaceae_unknown Tissierellaceae_unknown
+ASV102  Bacteria    Firmicutes  Tissierellia    Tissierellales  Peptoniphilaceae    Peptoniphilaceae_unknown    Peptoniphilaceae_unknown
+ASV105  Bacteria    Firmicutes  Erysipelotrichi Erysipelotrichales  Erysipelotrichaceae Erysipelothrix  Erysipelothrix_unknown
+ASV174  Bacteria    Firmicutes  Tissierellia    Tissierellales  Tissierellaceae Tissierella Tissierella_unknown
 ```
 
 ### Beta dispersion
@@ -1025,7 +792,7 @@ dispr
 ```
 
 ```text
-	Homogeneity of multivariate dispersions
+    Homogeneity of multivariate dispersions
 
 Call: vegan::betadisper(d = philr.dist, group =
 phyloseq::sample_data(ps.dat.nocont)$Season)
@@ -1054,7 +821,7 @@ Number of permutations: 999
 
 Response: Distances
           Df Sum Sq Mean Sq      F N.Perm Pr(>F)
-Groups     1   0.67  0.6732 0.0394    999  0.872
+Groups     1   0.67  0.6732 0.0394    999   0.84
 Residuals 56 956.64 17.0828
 ```
 
@@ -1064,7 +831,7 @@ dispr
 ```
 
 ```text
-	Homogeneity of multivariate dispersions
+    Homogeneity of multivariate dispersions
 
 Call: vegan::betadisper(d = philr.dist, group =
 phyloseq::sample_data(ps.dat.nocont)$Sex)
@@ -1093,61 +860,9 @@ Number of permutations: 999
 
 Response: Distances
           Df Sum Sq Mean Sq      F N.Perm Pr(>F)
-Groups     1  24.74  24.745 2.2261    999  0.128
+Groups     1  24.74  24.745 2.2261    999   0.13
 Residuals 56 622.49  11.116
 ```
-
-```R
-dispr <- vegan::betadisper(philr.dist, phyloseq::sample_data(ps.dat.nocont)$BMI_classification)
-dispr
-```
-
-```text
-	Homogeneity of multivariate dispersions
-
-Call: vegan::betadisper(d = philr.dist, group =
-phyloseq::sample_data(ps.dat.nocont)$BMI_classification)
-
-No. of Positive Eigenvalues: 57
-No. of Negative Eigenvalues: 0
-
-Average distance to median:
-         na      normal       obese  overweight underweight
-      1.416      13.722      10.054      10.800       2.306
-
-Eigenvalues for PCoA axes:
-(Showing 8 of 57 eigenvalues)
- PCoA1  PCoA2  PCoA3  PCoA4  PCoA5  PCoA6  PCoA7  PCoA8
-2884.0 2465.0 1063.1  546.6  439.1  374.7  319.5  245.1
-```
-
-```R
-permutest(dispr)
-```
-
-```text
-Permutation test for homogeneity of multivariate dispersions
-Permutation: free
-Number of permutations: 999
-
-Response: Distances
-          Df Sum Sq Mean Sq      F N.Perm Pr(>F)
-Groups     4 705.51 176.378 27.396    999  0.001 ***
-Residuals 53 341.22   6.438
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-```
-
-NOTE: This is probably driven by higher number of "normal" individuals, only one underweight individual
-
-
-```R
-png("imgs/betadispr_bmi_type.png")
-boxplot(dispr)
-dev.off()
-```
-
-![bdisp_bmi](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/betadispr_bmi_type.png)
 
 ```R
 dispr <- vegan::betadisper(philr.dist, phyloseq::sample_data(ps.dat.nocont)$Temp_group)
@@ -1155,7 +870,7 @@ dispr
 ```
 
 ```text
-	Homogeneity of multivariate dispersions
+    Homogeneity of multivariate dispersions
 
 Call: vegan::betadisper(d = philr.dist, group =
 phyloseq::sample_data(ps.dat.nocont)$Temp_group)
@@ -1184,14 +899,14 @@ Number of permutations: 999
 
 Response: Distances
           Df Sum Sq Mean Sq      F N.Perm Pr(>F)
-Groups     4 206.78  51.696 3.4759    999  0.024 *
+Groups     4 206.78  51.696 3.4759    999   0.02 *
 Residuals 53 788.25  14.873
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
 ```R
-png("imgs/betadispr_temp_type.png")
+png("betadispr_temp_type.png")
 boxplot(dispr)
 dev.off()
 ```
@@ -1204,7 +919,7 @@ dispr
 ```
 
 ```text
-	Homogeneity of multivariate dispersions
+    Homogeneity of multivariate dispersions
 
 Call: vegan::betadisper(d = philr.dist, group =
 phyloseq::sample_data(ps.dat.nocont)$Insects)
@@ -1240,7 +955,7 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 ```
 
 ```R
-png("imgs/betadispr_insect_type.png")
+png("betadispr_insect_type.png")
 boxplot(dispr)
 dev.off()
 ```
@@ -1251,7 +966,7 @@ dev.off()
 Abundance of different taxa across temperature
 
 ```R
-map <- read.table("map.txt.csv", sep="\t", header=TRUE)
+map <- read.table("map.txt", sep="\t", header=TRUE)
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE, conf.interval=.95) {
     library(doBy)
 
@@ -1285,105 +1000,10 @@ tgc <- summarySE(map, measurevar="log10_abund", groupvars=c("genera","Temp_range
 ggplot(tgc, aes(x=as.factor(Temp_range), y=log10_abund, colour=genera, group=genera)) + geom_line(position=pd) + geom_errorbar(aes(ymin=log10_abund-se, ymax=log10_abund+se), width=.2, position=pd, colour="black") + geom_point(position=pd, size=3, shape=21, fill="white") + theme_minimal() + scale_color_manual(values=c("#66c2a5", "#fc8d62", "#8da0cb"), labels=c("Ignatzschineria", "Proteus", "Providencia"), name="Genus") + xlab("Temperature range (celcius)") + ylab("Log10(abundance)")
 ```
 
-### OLD BELOW
-
-Clostridium seems to be very high in high temp, very low in low, plot these along temperature gradient. First merge with taxonomy. Open in excel and get values from clostridium.
-
-```R
-seqtab.nochim <- read.table("../01-raw_data_processing/sequence_table.16s.filtered.tr.txt", header=T, row.names=1)
-taxa <- read.table("../01-raw_data_processing/taxonomy_L7.txt", header=F, row.names=1)
-merged <- merge(seqtab.nochim, taxa, by=0)
-write.table(data.frame("row_names"=rownames(merged),merged),"sequence_taxonomy_table.16s.merged.txt", row.names=FALSE, quote=F, sep="\t")
-```
-
-Test plot differentially abundant ASVs by temperature
-
-```R
-test <- otu_table(philr.dat)[,"ASV4"]
-test.m <- merge(rawmetadata, test, by=0)
-test.m$Temperature_C <- as.numeric(as.character(test.m$Temperature_C))
-test.m <- test.m[!is.na(test.m$Temperature_C),]
-test.m$Temp_C_bin <- cut(test.m$Temperature_C, breaks=10)
-
-data_summary <- function(data, varname, groupnames){
-  require(plyr)
-  summary_func <- function(x, col){
-    c(mean = mean(x[[col]], na.rm=TRUE),
-      sd = sd(x[[col]], na.rm=TRUE))
-  }
-  data_sum<-ddply(data, groupnames, .fun=summary_func,
-                  varname)
-  data_sum <- rename(data_sum, c("mean" = varname))
- return(data_sum)
-}
-df2 <- data_summary(test.m, varname="ASV4", groupnames=c("Temperature_C"))
-png(paste("imgs/", "test_ASV4.png", sep=""))
-ggplot(df2, aes(x=as.factor(Temperature_C), y=ASV4)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("IRL Transformed Read Counts") + geom_errorbar(aes(ymin=ASV4-sd, ymax=ASV4+sd), width=.2) + geom_point(test.m, mapping=aes(x=as.factor(Temperature_C), y=ASV4)) + geom_jitter()
-dev.off()
-```
-
-![asv4 IRL counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/test_ASV4.png)
-
-Now do a real plot based off of differentially abundant clades in phylofactor by temp group
-
-```R
-# get list of asvs to filter data
-factor1 <- c("ASV5", "ASV19", "ASV2", "ASV80", "ASV23", "ASV85", "ASV212", "ASV122")
-factor2 <- c("ASV7", "ASV125", "ASV20", "ASV335", "ASV471", "ASV10", "ASV194", "ASV6", "ASV93", "ASV26", "ASV35", "ASV38", "ASV34")
-factor3 <- c("ASV14", "ASV9", "ASV1", "ASV56", "ASV25", "ASV3", "ASV67")
-# convert philr.dat transformed otu table to dataframe
-df <- otu_table(philr.dat)
-df <- as.data.frame(df)
-# filter data
-df.fac1 <- df[,which((names(df) %in% factor1)==TRUE)]
-df.fac2 <- df[,which((names(df) %in% factor2)==TRUE)]
-df.fac3 <- df[,which((names(df) %in% factor3)==TRUE)]
-# sum across all rows
-df.fac1 <- as.data.frame(rowSums(df.fac1))
-df.fac2 <- as.data.frame(rowSums(df.fac2))
-df.fac3 <- as.data.frame(rowSums(df.fac3))
-# merge data with metadata
-df.fac1.m <- merge(rawmetadata, df.fac1, by=0)
-df.fac2.m <- merge(rawmetadata, df.fac2, by=0)
-df.fac3.m <- merge(rawmetadata, df.fac3, by=0)
-# prep temperature category
-df.fac1.m$Temperature_C <- as.numeric(as.character(df.fac1.m$Temperature_C))
-df.fac2.m$Temperature_C <- as.numeric(as.character(df.fac2.m$Temperature_C))
-df.fac3.m$Temperature_C <- as.numeric(as.character(df.fac3.m$Temperature_C))
-df.fac1.m <- df.fac1.m[!is.na(df.fac1.m$Temperature_C),]
-df.fac2.m <- df.fac2.m[!is.na(df.fac2.m$Temperature_C),]
-df.fac3.m <- df.fac3.m[!is.na(df.fac3.m$Temperature_C),]
-df.fac1.m$Temp_C_bin <- cut(df.fac1.m$Temperature_C, breaks=10)
-df.fac2.m$Temp_C_bin <- cut(df.fac2.m$Temperature_C, breaks=10)
-df.fac3.m$Temp_C_bin <- cut(df.fac3.m$Temperature_C, breaks=10)
-# summarize data into bins
-df.fac1.sum <- data_summary(df.fac1.m, varname="rowSums(df.fac1)", groupnames=c("Temperature_C"))
-df.fac2.sum <- data_summary(df.fac2.m, varname="rowSums(df.fac2)", groupnames=c("Temperature_C"))
-df.fac3.sum <- data_summary(df.fac3.m, varname="rowSums(df.fac3)", groupnames=c("Temperature_C"))
-# clean up
-colnames(df.fac1.sum) <- c("Temperature_C", "factor", "sd")
-colnames(df.fac2.sum) <- c("Temperature_C", "factor", "sd")
-colnames(df.fac3.sum) <- c("Temperature_C", "factor", "sd")
-# plot
-png(paste("imgs/", "fact1_barplot_tempG.png", sep=""))
-ggplot(df.fac1.sum, aes(x=as.factor(Temperature_C), y=factor)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("ILR Transformed Read Counts") + geom_errorbar(aes(ymin=factor-sd, ymax=factor+sd), width=.2) + geom_point(df.fac1.sum, mapping=aes(x=as.factor(Temperature_C), y=factor)) + geom_jitter()
-dev.off()
-png(paste("imgs/", "fact2_barplot_tempG.png", sep=""))
-ggplot(df.fac2.sum, aes(x=as.factor(Temperature_C), y=factor)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("ILR Transformed Read Counts") + geom_errorbar(aes(ymin=factor-sd, ymax=factor+sd), width=.2) + geom_point(df.fac2.sum, mapping=aes(x=as.factor(Temperature_C), y=factor)) + geom_jitter()
-dev.off()
-png(paste("imgs/", "fact3_barplot_tempG.png", sep=""))
-ggplot(df.fac3.sum, aes(x=as.factor(Temperature_C), y=factor)) + geom_bar(stat="identity", color="black", fill="white") + theme_minimal() + xlab("Temperature C") + ylab("ILR Transformed Read Counts") + geom_errorbar(aes(ymin=factor-sd, ymax=factor+sd), width=.2) + geom_point(df.fac3.sum, mapping=aes(x=as.factor(Temperature_C), y=factor)) + geom_jitter()
-dev.off()
-```
-
-![fact1 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact1_barplot_tempG.png)
-![fact2 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact2_barplot_tempG.png)
-![fact3 ILR counts temp](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/fact3_barplot_tempG.png)
-
 ### Random forest
 
 ```R
-otu_table <- read.table("../01-raw_data_processing/sequence_table.16s.filtered.txt", sep="\t", header=T, row.names=1, stringsAsFactors=F, comment.char="")
+otu_table <- read.table("sequence_table.16s.filtered.txt", sep="\t", header=T, row.names=1, stringsAsFactors=F, comment.char="")
 otu_table <- t(otu_table)
 metadata <- read.table("map.txt", sep="\t", header=T, row.names=1, stringsAsFactors=T, comment.char="")
 metadata <- metadata[metadata$Season %in% c("winter", "summer"),]
@@ -1415,7 +1035,7 @@ rf_season
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
@@ -1427,37 +1047,11 @@ summer     32      2  0.05882353
 winter      2     22  0.08333333
 ```
 
-Lysing matrix
-
-```R
-metadata <- metadata[metadata$Matrix %in% c("E", "A"),]
-metadata$Matrix <- factor(metadata$Matrix)
-otu_table_scaled_var <- data.frame(t(otu_table_scaled))
-otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Matrix"]
-set.seed(151)
-otu_table_scaled_var <- otu_table_scaled_var %>% filter(!is.na(var))
-rf_matrix <- randomForest(x=otu_table_scaled_var[,1:(ncol(otu_table_scaled_var)-1)], y=otu_table_scaled_var[, ncol(otu_table_scaled_var)], ntree=10000, importance=T, proximity=T)
-rf_matrix
-```
-
-```text
-Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
-               Type of random forest: classification
-                     Number of trees: 10000
-No. of variables tried at each split: 14
-
-        OOB estimate of  error rate: 55.93%
-Confusion matrix:
-   A  E class.error
-A 12 18   0.6000000
-E 15 14   0.5172414
-```
-
 Insects
 
 ```R
-metadata <- metadata[metadata$Insects %in% c("y", "n"),]
+metadata <- read.table("map.txt", sep="\t", header=T, row.names=1, stringsAsFactors=T, comment.char="")
+metadata <- metadata[metadata$Insects %in% c("y", "n", "p"),]
 metadata$Insects <- factor(metadata$Insects)
 otu_table_scaled_var <- data.frame(t(otu_table_scaled))
 otu_table_scaled_var$var <- metadata[rownames(otu_table_scaled_var), "Insects"]
@@ -1469,21 +1063,23 @@ rf_insects
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 8.33%
+        OOB estimate of  error rate: 8.62%
 Confusion matrix:
-   n  y class.error
-n 21  3  0.12500000
-y  1 23  0.04166667
+   n p  y class.error
+n 21 0  3       0.125
+p  0 8  2       0.200
+y  0 0 24       0.000
 ```
 
 Temp group
 
 ```R
+metadata <- read.table("map.txt", sep="\t", header=T, row.names=1, stringsAsFactors=T, comment.char="")
 metadata <- metadata[metadata$Temp_group %in% c("20C", "30C", "40C", "50C"),]
 metadata$Temp_group <- factor(metadata$Temp_group)
 otu_table_scaled_var <- data.frame(t(otu_table_scaled))
@@ -1496,26 +1092,27 @@ rf_tgroup
 
 ```text
 Call:
- randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T) 
+ randomForest(x = otu_table_scaled_var[, 1:(ncol(otu_table_scaled_var) -      1)], y = otu_table_scaled_var[, ncol(otu_table_scaled_var)],      ntree = 10000, importance = T, proximity = T)
                Type of random forest: classification
                      Number of trees: 10000
 No. of variables tried at each split: 14
 
-        OOB estimate of  error rate: 17.39%
+        OOB estimate of  error rate: 19.64%
 Confusion matrix:
-    20C 30C 40C class.error
-20C   2   5   1  0.75000000
-30C   0  27   1  0.03571429
-40C   0   1   9  0.10000000
+    20C 30C 40C 50C class.error
+20C   2   5   1   0  0.75000000
+30C   0  26   2   0  0.07142857
+40C   0   1  17   0  0.05555556
+50C   0   2   0   0  1.00000000
 ```
 
 What top 5 taxa are most important in the random forest models?
 
 ```R
-png(paste("imgs/", "rf_season_importance.png", sep=""))
+png("rf_season_importance.png")
 varImpPlot(rf_season)
 dev.off()
-pdf(paste("imgs/", "rf_season_importance.pdf", sep=""))
+pdf("rf_season_importance.pdf")
 varImpPlot(rf_season)
 dev.off()
 ```
@@ -1523,17 +1120,17 @@ dev.off()
 ![rf_season](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/rf_season_importance.png)
 
 Season:
-1. ASV6	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
-2. ASV10	Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridium;Clostridium_unknown
-3. ASV2	Bacteria;Firmicutes;Bacilli;Bacillales;Planococcaceae;Sporosarcina;Sporosarcina_unknown
-4. ASV4	Bacteria;Actinobacteria;Actinobacteria_c;Corynebacteriales;Corynebacteriaceae;Corynebacterium;Corynebacterium_unknown
-5. ASV25	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
+1. ASV5 Bacteria    Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
+2. ASV10 Bacteria   Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown	
+3. ASV2	Bacteria    Firmicutes  Bacilli Bacillales  Planococcaceae  Sporosarcina    Sporosarcina_unknown
+4. ASV4	Bacteria    Actinobacteria  Actinobacteria_c    Corynebacteriales   Corynebacteriaceae  Corynebacterium Corynebacterium_unknown
+5. ASV29 Bacteria   Proteobacteria  Gammaproteobacteria Ignatzschineria_o   Ignatzschineria_f   Ignatzschineria_f_unknown   Ignatzschineria_f_unknown
 
 ```R
-png(paste("imgs/", "rf_insects_importance.png", sep=""))
+png("rf_insects_importance.png")
 varImpPlot(rf_insects)
 dev.off()
-pdf(paste("imgs/", "rf_insects_importance.pdf", sep=""))
+pdf("rf_insects_importance.pdf")
 varImpPlot(rf_insects)
 dev.off()
 ```
@@ -1541,11 +1138,11 @@ dev.off()
 ![rf insects](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/rf_insects_importance.png)
 
 Insects:
-1. ASV3	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
-2. ASV1	Bacteria;Proteobacteria;Gammaproteobacteria;Ignatzschineria_o;Ignatzschineria_f;Ignatzschineria_f_unknown;Ignatzschineria_f_unknown
-3. ASV73	Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus;Lactobacillus_unknown
-4. ASV89	Bacteria;Proteobacteria;Gammaproteobacteria;Enterobacterales;Morganellaceae;Providencia;Providencia_unknown
-5. ASV53	Bacteria;Firmicutes;Bacilli;Lactobacillales;Carnobacteriaceae;Trichococcus;Trichococcus_unknown
+1. ASV3	Bacteria    Proteobacteria  Gammaproteobacteria Ignatzschineria_o   Ignatzschineria_f   Ignatzschineria_f_unknown   Ignatzschineria_f_unknown
+2. ASV103 Proteobacteria    Gammaproteobacteria Enterobacterales    Morganellaceae  Providencia Providencia_unknown
+3. ASV34 Bacteria   Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
+4. ASV71 Bacteria   Firmicutes  Bacilli Lactobacillales Lactobacillaceae    Lactobacillus   Lactobacillus_unknown
+5. ASV57 Bacteria   Firmicutes  Clostridia  Clostridiales   Clostridiaceae  Clostridium Clostridium_unknown
 
 Plot for figure
 
@@ -1553,62 +1150,26 @@ Plot for figure
 impToPlot.season <- importance(rf_season, scale=F)[,3]
 impToPlot.season <- sort(impToPlot.season)
 short.imp <- tail(impToPlot.season, 10)
-pdf(paste("imgs/", "rf_season_importance.filt.pdf", sep=""))
+pdf("rf_season_importance.filt.pdf")
 dotchart(short.imp, xlim=c(0.00, 0.06))
 dev.off()
 impToPlot.season <- importance(rf_season, scale=F)[,4]
 impToPlot.season <- sort(impToPlot.season)
 short.imp <- tail(impToPlot.season, 10)
-pdf(paste("imgs/", "rf_season_importance.filt.gini.pdf", sep=""))
+pdf("rf_season_importance.filt.gini.pdf")
 dotchart(short.imp, xlim=c(0.0, 2.5))
 dev.off()
 impToPlot.insect <- importance(rf_insects, scale=F)[,3]
 impToPlot.insect <- sort(impToPlot.insect)
 short.imp <- tail(impToPlot.insect, 10)
-pdf(paste("imgs/", "rf_insects_importance.filt.pdf", sep=""))
+pdf("rf_insects_importance.filt.pdf")
 dotchart(short.imp, xlim=c(0.00, 0.06))
 dev.off()
 impToPlot.insect <- importance(rf_insects, scale=F)[,4]
 impToPlot.insect <- sort(impToPlot.insect)
 short.imp <- tail(impToPlot.insect, 10)
-pdf(paste("imgs/", "rf_insects_importance.filt.gini.pdf", sep=""))
+pdf("rf_insects_importance.filt.gini.pdf")
 dotchart(short.imp, xlim=c(0.0, 2.5))
 dev.off()
 ```
 
-### Correlation between temp/days in field and ratio between major phyla 
-
-added a pseudo count of 1 to get around divide by zero issues
-
-```R
-png(paste("imgs/", "corr_actino-firmi_temp.png", sep=""))
-qplot(as.numeric(as.character(seqtab.phylum$Temperature_C)), seqtab.phylum$actino.firmi, geom=c("point", "smooth")) + theme_minimal()
-dev.off()
-png(paste("imgs/", "corr_actino-proteo_temp.png", sep=""))
-qplot(as.numeric(as.character(seqtab.phylum$Temperature_C)), seqtab.phylum$actino.proteo, geom=c("point", "smooth")) + theme_minimal()
-dev.off()
-png(paste("imgs/", "corr_firmi-proteo_temp.png", sep=""))
-qplot(as.numeric(as.character(seqtab.phylum$Temperature_C)), seqtab.phylum$firmi.proteo, geom=c("point", "smooth")) + theme_minimal()
-dev.off()
-```
-
-![corr_temp1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-firmi_temp.png)
-![corr_temp2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-proteo_temp.png)
-![corr_temp3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_firmi-proteo_temp.png)
-
-
-```R
-png(paste("imgs/", "corr_actino-firmi_days.png", sep=""))
-qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$actino.firmi, geom=c("point", "smooth")) + theme_minimal()
-dev.off()
-png(paste("imgs/", "corr_actino-proteo_days.png", sep=""))
-qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$actino.proteo, geom=c("point", "smooth")) + theme_minimal()
-dev.off()
-png(paste("imgs/", "corr_firmi-proteo_days.png", sep=""))
-qplot(seqtab.phylum$Days_in_Field, seqtab.phylum$firmi.proteo, geom=c("point", "smooth")) + theme_minimal()
-dev.off()
-```
-
-![corr_days1](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-firmi_days.png)
-![corr_days2](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_actino-proteo_days.png)
-![corr_days3](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/corr_firmi-proteo_days.png)
