@@ -1,5 +1,3 @@
-### Want to see if we have significant contamination in our samples
-
 First need to convert transposed table to biom format for sourcetracker 2
 
 ```bash
