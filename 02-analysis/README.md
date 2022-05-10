@@ -1172,4 +1172,39 @@ pdf("rf_insects_importance.filt.gini.pdf")
 dotchart(short.imp, xlim=c(0.0, 2.5))
 dev.off()
 ```
+Abundance of important taxa by temperature range
+
+```R
+library(plyr)
+library(ggplot2)
+getwd()
+# [1] "/Users/mann/github/necrobiome/02-analysis"
+tempdat <- read.table("map_abund.csv", sep=",", header=T)
+# function to summarize data
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+# summarize the data
+sumdat <- data_summary(tempdat, varname="log10Abund", groupnames=c("Genus", "Temp_group"))
+# convert temp group to factor
+sumdat$Temp_group <- as.factor(sumdat$Temp_group)
+# graph 
+pd <- position_dodge(0.1)
+pdf("imgs/Fig5_temp_gradient_abundance.pdf")
+ggplot(sumdat, aes(x=Temp_group, y=log10Abund, group=Genus, color=Genus)) + geom_line(position=pd, size=2) + geom_errorbar(aes(ymin=log10Abund-sd,ymax=log10Abund+sd), color="darkgrey", width=.1, position=pd) + geom_point(position=pd, size=3, shape=21, fill="white") + theme_minimal()
+dev.off()
+png("imgs/Fig5_temp_gradient_abundance.png")
+ggplot(sumdat, aes(x=Temp_group, y=log10Abund, group=Genus, color=Genus)) + geom_line(position=pd, size=2) + geom_errorbar(aes(ymin=log10Abund-sd,ymax=log10Abund+sd), color="darkgrey", width=.1, position=pd) + geom_point(position=pd, size=3, shape=21, fill="white") + theme_minimal()
+dev.off()
+```
+
+![rf insects](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/Fig5_temp_gradient_abundance.png)
 
