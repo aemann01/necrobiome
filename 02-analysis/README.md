@@ -1206,5 +1206,5 @@ ggplot(sumdat, aes(x=Temp_group, y=log10Abund, group=Genus, color=Genus)) + geom
 dev.off()
 ```
 
-![rf insects](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/Fig5_temp_gradient_abundance.png)
+![temp gradient](https://github.com/aemann01/necrobiome/blob/master/02-analysis/imgs/Fig5_temp_gradient_abundance.png)
 
