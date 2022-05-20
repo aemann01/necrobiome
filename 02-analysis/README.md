@@ -1,3 +1,11 @@
+## Statistical analyses
+
+All R scripts can be found in the analysis jupyter notebook in this directory. To run:
+
+```bash
+jupyter-notebook analyses.ipynb
+```
+
 ### Differential abundance 
 
 Activate qiime2 environment
