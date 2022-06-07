@@ -30,7 +30,7 @@ conda env create -f environment.yml
 - To load a given environment run
 
 ```bash
-conda activate necrobiome
+conda activate 2022-Necrobiome
 ```
 
 - To turn off the environment run
