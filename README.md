@@ -1,6 +1,6 @@
 # necrobiome
 
-This repository describes the analysis performed in the paper *Tarone et al.* ///////.
+This repository describes the analysis performed in the paper *Tarone et al.* 2022.
 
 [![DOI](https://zenodo.org/badge/295850877.svg)](https://zenodo.org/badge/latestdoi/295850877)
 
