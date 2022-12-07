@@ -1,6 +1,6 @@
 # necrobiome
 
-This repository describes the analysis performed in the paper *Tarone et al.* 2022.
+This repository describes the analysis performed in the paper *Tarone et al.* 2022. [The devil is in the details: Variable impacts of season, BMI, sampling site temperature, and presence of insects on the post-mortem microbiome](https://www.frontiersin.org/articles/10.3389/fmicb.2022.1064904/full)
 
 [![DOI](https://zenodo.org/badge/295850877.svg)](https://zenodo.org/badge/latestdoi/295850877)
 
